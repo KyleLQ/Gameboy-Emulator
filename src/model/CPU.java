@@ -4,80 +4,12 @@ import Util.GameBoyUtil;
 import exception.CPUException;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Consumer;
 
 public class CPU {
 
     // registers should be unsigned! but the underlying bits are the same anyways,
     // can just interpret them as signed or unsigned
     private byte ra,rb,rc,rd,re,rf,rh,rl;
-    private final List<Consumer<Byte>> INSTRUCTION_TO_ALU_MAP = Arrays.asList(
-            (Byte b) -> {
-                byte regA = getRa();
-                setZeroFlag(((regA + b) == 0) ? 1 : 0);
-                setSubtractionFlag(0);
-                updateCarryFlagAddition(getRa(), b, (byte) 0);
-                updateHalfCarryFlagAddition(getRa(), b, (byte) 0);
-                setRa((byte) (getRa() + b));
-            },
-            (Byte b) -> {
-                byte regA = getRa();
-                setZeroFlag(((regA + b + getCarryFlag()) == 0) ? 1 : 0);
-                setSubtractionFlag(0);
-                updateHalfCarryFlagAddition(regA, b, (byte) getCarryFlag());
-                setRa((byte) (regA + b + getCarryFlag()));
-                updateCarryFlagAddition(regA, b, (byte) getCarryFlag());
-            },
-            (Byte b) -> {
-                byte regA = getRa();
-                setZeroFlag(((regA - b) == 0) ? 1 : 0);
-                setSubtractionFlag(1);
-                updateCarryFlagSubtraction(regA, b, (byte) 0);
-                updateHalfCarryFlagSubtraction(regA, b, (byte) 0);
-                setRa((byte) (regA - b));
-            },
-            (Byte b) -> {
-                byte regA = getRa();
-                setZeroFlag(((regA - b - getCarryFlag()) == 0) ? 1 : 0);
-                setSubtractionFlag(1);
-                updateHalfCarryFlagSubtraction(regA, b, (byte) getCarryFlag());
-                setRa((byte) (regA - b - getCarryFlag()));
-                updateCarryFlagSubtraction(regA, b, (byte) getCarryFlag());
-            },
-            (Byte b) -> {
-                byte regA = getRa();
-                setZeroFlag(((regA & b) == 0) ? 1 : 0);
-                setSubtractionFlag(0);
-                setCarryFlag(0);
-                setHalfCarryFlag(1);
-                setRa((byte) (regA & b));
-            },
-            (Byte b) -> {
-                byte regA = getRa();
-                setZeroFlag(((regA ^ b) == 0) ? 1 : 0);
-                setSubtractionFlag(0);
-                setCarryFlag(0);
-                setHalfCarryFlag(0);
-                setRa((byte) (regA ^ b));
-            },
-            (Byte b) -> {
-                byte regA = getRa();
-                setZeroFlag(((regA | b) == 0) ? 1 : 0);
-                setSubtractionFlag(0);
-                setCarryFlag(0);
-                setHalfCarryFlag(0);
-                setRa((byte) (regA | b));
-            },
-            (Byte b) -> {
-                byte regA = getRa();
-                setZeroFlag(((regA - b) == 0) ? 1 : 0);
-                setSubtractionFlag(1);
-                updateCarryFlagSubtraction(regA, b, (byte) 0);
-                updateHalfCarryFlagSubtraction(regA, b, (byte) 0);
-            }
-    );
 
     public CPU () {
     }
@@ -92,62 +24,11 @@ public class CPU {
             if (GameBoyUtil.getBitFromPosInByte(instruction, 6) == 1) {
 
             } else {
-                executeALU_A_r8(instruction);
+                ALUExecution.executeALU_A_r8(instruction, this);
             }
         } else {
 
         }
-    }
-
-    /**
-     * corresponds to ALU A,r8 instruction.
-     */
-    private void executeALU_A_r8(byte instruction) {
-        // 0x0 should be (HL) todo
-        // need a better place to put this?
-        // can't make it an instance variable, since its values only get set once as 0/initial values
-        final byte[] INSTRUCTION_TO_R8_MAP = {getRb(), getRc(), getRd(), getRe(), getRh(), getRl(), 0x0, getRa()};
-
-        byte r8 = INSTRUCTION_TO_R8_MAP[GameBoyUtil.get3BitValue(GameBoyUtil.getBitFromPosInByte(instruction,2),
-                GameBoyUtil.getBitFromPosInByte(instruction, 1),
-                GameBoyUtil.getBitFromPosInByte(instruction, 0))];
-        Consumer<Byte> ALUFunction = INSTRUCTION_TO_ALU_MAP.get(GameBoyUtil.get3BitValue(GameBoyUtil.getBitFromPosInByte(instruction,5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
-
-        ALUFunction.accept(r8);
-    }
-
-    /**
-     * updates carry flag based on the result of operand1 + operand2 + operand3
-     */
-    private void updateCarryFlagAddition(byte operand1, byte operand2, byte operand3) {
-        int result = GameBoyUtil.zeroExtendByte(operand1) + GameBoyUtil.zeroExtendByte(operand2) + GameBoyUtil.zeroExtendByte(operand3);
-        setCarryFlag((result > GameBoyUtil.UNSIGNED_BYTE_MAX) ? 1 : 0);
-    }
-
-    /**
-     * updates carry flag based on the result of operand1 - operand2 - operand3
-     */
-    private void updateCarryFlagSubtraction(byte operand1, byte operand2, byte operand3) {
-        int result = GameBoyUtil.zeroExtendByte(operand1) - GameBoyUtil.zeroExtendByte(operand2) - GameBoyUtil.zeroExtendByte(operand3);
-        setCarryFlag((result < 0) ? 1 : 0);
-    }
-
-    /**
-     * updates half carry flag based on the result of operand1 + operand2 + operand3
-     */
-    private void updateHalfCarryFlagAddition(byte operand1, byte operand2, byte operand3) {
-        int nibbleAdditionResult = GameBoyUtil.getNibble(true, operand1) + GameBoyUtil.getNibble(true, operand2) + GameBoyUtil.getNibble(true, operand3);
-        setHalfCarryFlag((nibbleAdditionResult > GameBoyUtil.UNSIGNED_NIBBLE_MAX) ? 1 : 0);
-    }
-
-    /**
-     * updates half carry flag based on result of operand1 - operand2 - operand3
-     */
-    private void updateHalfCarryFlagSubtraction(byte operand1, byte operand2, byte operand3) {
-        int nibbleSubtractionResult = GameBoyUtil.getNibble(true, operand1) - GameBoyUtil.getNibble(true, operand2) - GameBoyUtil.getNibble(true, operand3);
-        setHalfCarryFlag((nibbleSubtractionResult < 0) ? 1 : 0);
     }
 
     public int getZeroFlag() {
