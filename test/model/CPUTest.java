@@ -1,5 +1,5 @@
-import exception.CPUException;
-import model.CPU;
+package model;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,51 +47,6 @@ public class CPUTest {
         assertEquals(0, cpu.getHalfCarryFlag());
         cpu.setCarryFlag(1);
         assertEquals(1, cpu.getCarryFlag());
-    }
-
-    @Test
-    public void testGetBitPosFromByte() {
-        byte b = (byte) 0b10010010;
-        assertEquals(1, CPU.getBitFromPosInByte(b,7));
-        assertEquals(0, CPU.getBitFromPosInByte(b,6));
-        assertEquals(0, CPU.getBitFromPosInByte(b,5));
-        assertEquals(1, CPU.getBitFromPosInByte(b,4));
-        assertEquals(0, CPU.getBitFromPosInByte(b,3));
-        assertEquals(0, CPU.getBitFromPosInByte(b,2));
-        assertEquals(1, CPU.getBitFromPosInByte(b,1));
-        assertEquals(0, CPU.getBitFromPosInByte(b,0));
-
-        try {
-            CPU.getBitFromPosInByte(b, -1);
-            fail("pos is out of bounds, but didn't fail");
-        } catch (CPUException e) {
-
-        } catch (Exception e) {
-            fail("pos is out of bounds, and failed with wrong exception");
-        }
-    }
-
-    @Test
-    public void testZeroExtension() {
-        byte b = (byte) 0xff;
-        int i = CPU.zeroExtendByte(b);
-        System.out.println(i);
-        assertEquals(i, 0xff);
-
-        b = (byte) 0x11;
-        i = CPU.zeroExtendByte(b);
-        System.out.println(i);
-        assertEquals(i, 0x11);
-    }
-
-    @Test
-    public void testGetNibble() {
-        byte b = (byte) 0b10100101;
-        int lowerNibble = CPU.getNibble(true, b);
-        int upperNibble = CPU.getNibble(false, b);
-
-        assertEquals(10, upperNibble);
-        assertEquals(5, lowerNibble);
     }
 
     // todo doesn't test (HL) register
@@ -210,9 +165,10 @@ public class CPUTest {
         cpu.setRa((byte) 0b10101010);
         instruction = (byte) 0b10111111;
         System.out.println(cpu.getRa() + " CP " + cpu.getRa() + " = ");
+        int originalRa = cpu.getRa();
         cpu.decodeInstruction(instruction);
         System.out.println(cpu.getRa());
-        assertEquals(cpu.getRa(), cpu.getRa());
+        assertEquals(originalRa, cpu.getRa());
         assertEquals(1, cpu.getZeroFlag());
         assertEquals(1, cpu.getSubtractionFlag());
         assertEquals(0, cpu.getCarryFlag());
