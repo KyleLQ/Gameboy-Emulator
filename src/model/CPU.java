@@ -10,6 +10,7 @@ public class CPU {
     // registers should be unsigned! but the underlying bits are the same anyways,
     // can just interpret them as signed or unsigned
     private byte ra,rb,rc,rd,re,rf,rh,rl;
+    private short sp;
 
     public CPU () {
     }
@@ -27,7 +28,11 @@ public class CPU {
                 ALUExecution.executeALU_A_r8(instruction, this);
             }
         } else {
+            if (GameBoyUtil.getBitFromPosInByte(instruction, 6) == 1) {
 
+            } else {
+                ALUExecution.executeADD_HL_r16(instruction, this);
+            }
         }
     }
 
@@ -141,6 +146,14 @@ public class CPU {
         bb.putShort(value);
         rh = bb.get(0);
         rl = bb.get(1);
+    }
+
+    public short getStackPointer() {
+        return sp;
+    }
+
+    public void setStackPointer(short value) {
+        sp = value;
     }
 
     public byte getRa() {

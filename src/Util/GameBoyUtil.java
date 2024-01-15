@@ -3,6 +3,8 @@ package Util;
 import exception.CPUException;
 
 public class GameBoyUtil {
+    public static final int UNSIGNED_SHORT_MAX = 65535;
+    public static final int UNSIGNED_12_BIT_MAX = 4095;
     public static final int UNSIGNED_BYTE_MAX = 255;
     public static final int UNSIGNED_NIBBLE_MAX = 15;
 
@@ -34,6 +36,16 @@ public class GameBoyUtil {
     }
 
     /**
+     * @param bit1 the bit at position 1 of return value
+     * @param bit0 the bit at position 0 of return value
+     * @return the value of a number with bit1 at position 1,
+     *         and bit0 at position 0, in [0,3]
+     */
+    public static int get2BitValue(int bit1, int bit0) {
+        return  bit1 * 2 + bit0;
+    }
+
+    /**
      * @param lower is true if we want the lower 4 bits of b, false if upper 4 bits
      * @param b is the byte
      * @return either the upper 4 or lower 4 bits of byte b as an int value
@@ -55,6 +67,14 @@ public class GameBoyUtil {
      */
     public static int zeroExtendByte(byte b) {
         return ((int) b) & 0x000000ff;
+    }
+
+    /**
+     * @param s the short to zero extend
+     * @return short s extended to become an int
+     */
+    public static int zeroExtendShort(short s) {
+        return ((int) s) & 0x0000ffff;
     }
 
     // helper method to interpret bytes as unsigned ints

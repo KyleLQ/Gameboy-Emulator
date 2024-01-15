@@ -30,7 +30,7 @@ public class GameBoyUtilTest {
     }
 
     @Test
-    public void testZeroExtension() {
+    public void testZeroExtensionByte() {
         byte b = (byte) 0xff;
         int i = GameBoyUtil.zeroExtendByte(b);
         System.out.println(i);
@@ -40,6 +40,19 @@ public class GameBoyUtilTest {
         i = GameBoyUtil.zeroExtendByte(b);
         System.out.println(i);
         assertEquals(i, 0x11);
+    }
+
+    @Test
+    public void testZeroExtensionShort() {
+        short s = (short) 0xffff;
+        int i = GameBoyUtil.zeroExtendShort(s);
+        System.out.println(i);
+        assertEquals(i, 0xffff);
+
+        s = (short) 0x1111;
+        i = GameBoyUtil.zeroExtendShort(s);
+        System.out.println(i);
+        assertEquals(i, 0x1111);
     }
 
     @Test

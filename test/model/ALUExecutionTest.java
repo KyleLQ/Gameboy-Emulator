@@ -158,4 +158,56 @@ public class ALUExecutionTest {
         assertEquals(0, cpu.getCarryFlag());
         assertEquals(0, cpu.getHalfCarryFlag());
     }
+
+    @Test
+    public void testADD_HL_r16_normal() {
+        cpu.setRegisterBC((short) 15);
+        cpu.setRegisterHL((short) 2);
+        byte instruction = (byte) 0b00001001;
+        System.out.println(cpu.getRegisterBC() + " + " + cpu.getRegisterHL() + " = ");
+        cpu.decodeInstruction(instruction);
+        System.out.println(cpu.getRegisterHL());
+        assertEquals((short) 17, cpu.getRegisterHL());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getCarryFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+
+        cpu.setRegisterDE((short) 204);
+        cpu.setRegisterHL((short) 173);
+        instruction = (byte) 0b00011001;
+        System.out.println(cpu.getRegisterDE() + " + " + cpu.getRegisterHL() + " = ");
+        cpu.decodeInstruction(instruction);
+        System.out.println(cpu.getRegisterHL());
+        assertEquals((short) 377, cpu.getRegisterHL());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getCarryFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+    }
+
+    @Test
+    public void testADD_HL_r16_carry() {
+        cpu.setRegisterHL((short) 32768);
+        byte instruction = (byte) 0b00101001;
+        System.out.println(cpu.getRegisterHL() + " + " + cpu.getRegisterHL() + " = ");
+        cpu.decodeInstruction(instruction);
+        System.out.println(cpu.getRegisterHL());
+        assertEquals((short) 0, cpu.getRegisterHL());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(1, cpu.getCarryFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+    }
+
+    @Test
+    public void testADD_HL_r16_half_carry() {
+        cpu.setStackPointer((short) 4090);
+        cpu.setRegisterHL((short) 6);
+        byte instruction = (byte) 0b00111001;
+        System.out.println(cpu.getStackPointer() + " + " + cpu.getRegisterHL() + " = ");
+        cpu.decodeInstruction(instruction);
+        System.out.println(cpu.getRegisterHL());
+        assertEquals((short) 4096, cpu.getRegisterHL());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getCarryFlag());
+        assertEquals(1, cpu.getHalfCarryFlag());
+    }
 }
