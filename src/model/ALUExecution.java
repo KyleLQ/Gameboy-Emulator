@@ -1,6 +1,6 @@
 package model;
 
-import Util.GameBoyUtil;
+import util.GameBoyUtil;
 
 import java.util.Arrays;
 import java.util.List;

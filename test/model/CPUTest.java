@@ -2,6 +2,7 @@ package model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import testutil.TestUtil;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,13 +20,13 @@ public class CPUTest {
         cpu.setRb((byte) 0x58);
         cpu.setRc((byte) 0xea);
         assertEquals((short) 0x58ea,cpu.getRegisterBC());
-        System.out.println("register BC value: " + String.format("0x%08X", cpu.getRegisterBC()));
+        System.out.println("register BC value: " + TestUtil.convertToHexString(cpu.getRegisterBC()));
 
         cpu.setRegisterBC((short) 0x78fa);
         assertEquals((byte) 0x78, cpu.getRb());
         assertEquals((byte) 0xfa, cpu.getRc());
-        System.out.println("register B value: " + String.format("0x%08X", cpu.getRb()));
-        System.out.println("register C value: " + String.format("0x%08X", cpu.getRc()));
+        System.out.println("register B value: " + TestUtil.convertToHexString(cpu.getRb()));
+        System.out.println("register C value: " + TestUtil.convertToHexString(cpu.getRc()));
     }
 
     @Test

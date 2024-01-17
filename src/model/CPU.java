@@ -1,6 +1,6 @@
 package model;
 
-import Util.GameBoyUtil;
+import util.GameBoyUtil;
 import exception.CPUException;
 
 import java.nio.ByteBuffer;

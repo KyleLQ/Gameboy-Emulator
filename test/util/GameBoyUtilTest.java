@@ -1,7 +1,8 @@
-package Util;
+package util;
 
 import exception.CPUException;
 import org.junit.jupiter.api.Test;
+import testutil.TestUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -33,12 +34,12 @@ public class GameBoyUtilTest {
     public void testZeroExtensionByte() {
         byte b = (byte) 0xff;
         int i = GameBoyUtil.zeroExtendByte(b);
-        System.out.println(i);
+        System.out.println(TestUtil.convertToHexString(i));
         assertEquals(i, 0xff);
 
         b = (byte) 0x11;
         i = GameBoyUtil.zeroExtendByte(b);
-        System.out.println(i);
+        System.out.println(TestUtil.convertToHexString(i));
         assertEquals(i, 0x11);
     }
 
@@ -46,12 +47,12 @@ public class GameBoyUtilTest {
     public void testZeroExtensionShort() {
         short s = (short) 0xffff;
         int i = GameBoyUtil.zeroExtendShort(s);
-        System.out.println(i);
+        System.out.println(TestUtil.convertToHexString(i));
         assertEquals(i, 0xffff);
 
         s = (short) 0x1111;
         i = GameBoyUtil.zeroExtendShort(s);
-        System.out.println(i);
+        System.out.println(TestUtil.convertToHexString(i));
         assertEquals(i, 0x1111);
     }
 
