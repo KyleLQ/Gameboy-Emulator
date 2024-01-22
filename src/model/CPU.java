@@ -20,6 +20,7 @@ public class CPU {
 
 
     // handle the alu instructions only first
+    // NEED A BETTER DESIGN FOR THIS!!!!!!!!!!!!!!!!!!!!!!!!
     public void decodeInstruction(byte instruction) {
         if (GameBoyUtil.getBitFromPosInByte(instruction, 7) == 1) {
             if (GameBoyUtil.getBitFromPosInByte(instruction, 6) == 1) {
@@ -31,7 +32,20 @@ public class CPU {
             if (GameBoyUtil.getBitFromPosInByte(instruction, 6) == 1) {
 
             } else {
-                ALUExecution.executeADD_HL_r16(instruction, this);
+                if (GameBoyUtil.getNibble(true, instruction) == 0b1001) {
+                    ALUExecution.executeADD_HL_r16(instruction, this);
+                } else if (GameBoyUtil.getBitFromPosInByte(instruction, 2) == 1 &&
+                        GameBoyUtil.getBitFromPosInByte(instruction, 1) == 0) {
+                    if ((GameBoyUtil.getBitFromPosInByte(instruction, 0) == 0)) {
+                        ALUExecution.executeINC_r8(instruction, this);
+                    } else {
+                        ALUExecution.executeDEC_r8(instruction, this);
+                    }
+                } else if (GameBoyUtil.get3BitValue(GameBoyUtil.getBitFromPosInByte(instruction, 2),
+                        GameBoyUtil.getBitFromPosInByte(instruction, 1),
+                        GameBoyUtil.getBitFromPosInByte(instruction, 0)) == 3) {
+                    // inc/dec r16
+                }
             }
         }
     }

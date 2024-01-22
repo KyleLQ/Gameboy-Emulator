@@ -5,8 +5,36 @@ import util.GameBoyUtil;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class ALUExecution {
+
+
+    // return (byte) 0 is just a placeholder for (HL) todo
+    private static final List<Function<CPU, Byte>> INSTRUCTION_TO_GET_R8_MAP = Arrays.asList(
+            CPU::getRb,
+            CPU::getRc,
+            CPU::getRd,
+            CPU::getRe,
+            CPU::getRh,
+            CPU::getRl,
+            (CPU cpu) -> {
+                return (byte) 0;
+            },
+            CPU::getRa
+    );
+
+    // the empty method is a placeholder for (HL) todo
+    private static final List<BiConsumer<Byte, CPU>> INSTRUCTION_TO_SET_R8_MAP = Arrays.asList(
+            (Byte b, CPU cpu) -> cpu.setRb(b),
+            (Byte b, CPU cpu) -> cpu.setRc(b),
+            (Byte b, CPU cpu) -> cpu.setRd(b),
+            (Byte b, CPU cpu) -> cpu.setRe(b),
+            (Byte b, CPU cpu) -> cpu.setRh(b),
+            (Byte b, CPU cpu) -> cpu.setRl(b),
+            (Byte b, CPU cpu) -> {},
+            (Byte b, CPU cpu) -> cpu.setRa(b)
+    );
 
     private static final List<BiConsumer<Byte, CPU>> INSTRUCTION_TO_ALU_A_R8_MAP = Arrays.asList(
             (Byte b, CPU cpu) -> {
@@ -78,18 +106,15 @@ public class ALUExecution {
      * corresponds to ALU A,r8 instruction.
      */
     public static void executeALU_A_r8(byte instruction, CPU cpu) {
-        // 0x0 should be (HL) todo
-        // need a better place to put this?
-        // can't make it an instance variable, since its values only get set once as 0/initial values
-        final byte[] INSTRUCTION_TO_R8_MAP = {cpu.getRb(), cpu.getRc(), cpu.getRd(), cpu.getRe(),
-                cpu.getRh(), cpu.getRl(), 0x0, cpu.getRa()};
-
-        byte r8 = INSTRUCTION_TO_R8_MAP[GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction,2),
+        Function<CPU, Byte> getR8 = INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 2),
                 GameBoyUtil.getBitFromPosInByte(instruction, 1),
-                GameBoyUtil.getBitFromPosInByte(instruction, 0))];
+                GameBoyUtil.getBitFromPosInByte(instruction, 0)));
+
+        byte r8 = getR8.apply(cpu);
+
         BiConsumer<Byte, CPU> ALUFunction = INSTRUCTION_TO_ALU_A_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction,5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
                 GameBoyUtil.getBitFromPosInByte(instruction, 4),
                 GameBoyUtil.getBitFromPosInByte(instruction, 3)));
 
@@ -100,6 +125,7 @@ public class ALUExecution {
      * corresponds to the ADD HL, r16 instruction
      */
     public static void executeADD_HL_r16(byte instruction, CPU cpu) {
+        // replace this later todo
         final short[] INSTRUCTION_TO_R16_MAP = {cpu.getRegisterBC(), cpu.getRegisterDE(),
                 cpu.getRegisterHL(), cpu.getStackPointer()};
 
@@ -113,6 +139,41 @@ public class ALUExecution {
         updateHalfCarryFlagAdditionR16(cpu.getRegisterHL(), r16, cpu);
         cpu.setRegisterHL((short) (cpu.getRegisterHL() + r16));
     }
+
+
+    /**
+     * corresponds to INC r8 instruction
+     */
+    public static void executeINC_r8(byte instruction, CPU cpu) {
+
+        Function<CPU, Byte> getR8 = INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+
+        byte r8 = getR8.apply(cpu);
+        int result = GameBoyUtil.zeroExtendByte(r8) + 1;
+        cpu.setZeroFlag((result == 0) ? 1 : 0);
+        cpu.setSubtractionFlag(0);
+        updateHalfCarryFlagAdditionR8(r8, (byte) 1, (byte) 0, cpu);
+
+        BiConsumer<Byte, CPU> setR8 = INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
+           GameBoyUtil.getBitFromPosInByte(instruction, 5),
+           GameBoyUtil.getBitFromPosInByte(instruction, 4),
+           GameBoyUtil.getBitFromPosInByte(instruction, 3)
+        ));
+
+        setR8.accept((byte) result, cpu);
+    }
+
+
+    /**
+     * corresponds to DEC r8 instruction
+     */
+    public static void executeDEC_r8(byte instruction, CPU cpu) {
+
+    }
+
 
     /**
      * updates carry flag based on the result of operand1 + operand2 + operand3
