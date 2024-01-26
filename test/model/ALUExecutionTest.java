@@ -277,4 +277,44 @@ public class ALUExecutionTest {
         assertEquals(1, cpu.getHalfCarryFlag());
         assertEquals(0, cpu.getCarryFlag()); // shouldn't be modified
     }
+
+    @Test
+    public void testINC_r16() {
+        cpu.setZeroFlag(1);
+        cpu.setSubtractionFlag(1);
+        cpu.setHalfCarryFlag(1);
+        cpu.setCarryFlag(1);
+        cpu.setRegisterBC((short) 580);
+        byte instruction = (byte) 0b00000011;
+        System.out.println("INC " + TestUtil.convertShortToUnsignedString(cpu.getRegisterBC()) + " = ");
+        cpu.decodeInstruction(instruction);
+        System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterBC()));
+        assertEquals((short) 581, cpu.getRegisterBC());
+
+        // check flags not modified
+        assertEquals(1, cpu.getZeroFlag());
+        assertEquals(1, cpu.getSubtractionFlag());
+        assertEquals(1, cpu.getHalfCarryFlag());
+        assertEquals(1, cpu.getCarryFlag());
+    }
+
+    @Test
+    public void testDEC_r16() {
+        cpu.setZeroFlag(0);
+        cpu.setSubtractionFlag(0);
+        cpu.setHalfCarryFlag(0);
+        cpu.setCarryFlag(0);
+        cpu.setRegisterHL((short) 362);
+        byte instruction = (byte) 0b00101011;
+        System.out.println("DEC " + TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()) + " = ");
+        cpu.decodeInstruction(instruction);
+        System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()));
+        assertEquals((short) 361, cpu.getRegisterHL());
+
+        // check flags not modified
+        assertEquals(0, cpu.getZeroFlag());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+        assertEquals(0, cpu.getCarryFlag());
+    }
 }

@@ -21,6 +21,10 @@ public class CPU {
 
     // handle the alu instructions only first
     // NEED A BETTER DESIGN FOR THIS!!!!!!!!!!!!!!!!!!!!!!!!
+    // todo: idea: make a list of regex patterns matching all the possible instruction types,
+    // for each new instruction, iterate through the list until you find a match, then call associated function.
+    // advantage: shorter code
+    // disadvantage: slower (probably not relevant)
     public void decodeInstruction(byte instruction) {
         if (GameBoyUtil.getBitFromPosInByte(instruction, 7) == 1) {
             if (GameBoyUtil.getBitFromPosInByte(instruction, 6) == 1) {
@@ -44,7 +48,11 @@ public class CPU {
                 } else if (GameBoyUtil.get3BitValue(GameBoyUtil.getBitFromPosInByte(instruction, 2),
                         GameBoyUtil.getBitFromPosInByte(instruction, 1),
                         GameBoyUtil.getBitFromPosInByte(instruction, 0)) == 3) {
-                    // inc/dec r16
+                    if (GameBoyUtil.getBitFromPosInByte(instruction, 3) == 0) {
+                        ALUExecution.executeINC_r16(instruction, this);
+                    } else {
+                        ALUExecution.executeDEC_r16(instruction, this);
+                    }
                 }
             }
         }

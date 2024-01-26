@@ -36,6 +36,20 @@ public class ALUExecution {
             (Byte b, CPU cpu) -> cpu.setRa(b)
     );
 
+    private static final List<Function<CPU, Short>> INSTRUCTION_TO_GET_R16_MAP = Arrays.asList(
+            CPU::getRegisterBC,
+            CPU::getRegisterDE,
+            CPU::getRegisterHL,
+            CPU::getStackPointer
+    );
+
+    private static final List<BiConsumer<Short, CPU>> INSTRUCTION_TO_SET_R16_MAP = Arrays.asList(
+            (Short s, CPU cpu) -> cpu.setRegisterBC(s),
+            (Short s, CPU cpu) -> cpu.setRegisterDE(s),
+            (Short s, CPU cpu) -> cpu.setRegisterHL(s),
+            (Short s, CPU cpu) -> cpu.setStackPointer(s)
+    );
+
     private static final List<BiConsumer<Byte, CPU>> INSTRUCTION_TO_ALU_A_R8_MAP = Arrays.asList(
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
@@ -125,14 +139,12 @@ public class ALUExecution {
      * corresponds to the ADD HL, r16 instruction
      */
     public static void executeADD_HL_r16(byte instruction, CPU cpu) {
-        // replace this later todo
-        final short[] INSTRUCTION_TO_R16_MAP = {cpu.getRegisterBC(), cpu.getRegisterDE(),
-                cpu.getRegisterHL(), cpu.getStackPointer()};
+       Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_MAP.get(GameBoyUtil.get2BitValue(
+               GameBoyUtil.getBitFromPosInByte(instruction, 5),
+               GameBoyUtil.getBitFromPosInByte(instruction, 4)
+       ));
 
-        short r16 = INSTRUCTION_TO_R16_MAP[GameBoyUtil.get2BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4)
-        )];
+       short r16 = getR16.apply(cpu);
 
         cpu.setSubtractionFlag(0);
         updateCarryFlagAdditionR16(cpu.getRegisterHL(), r16, cpu);
@@ -191,6 +203,43 @@ public class ALUExecution {
         setR8.accept((byte) result, cpu);
     }
 
+    /**
+     * corresponds to INC r16 instruction
+     */
+    public static void executeINC_r16(byte instruction, CPU cpu) {
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_MAP.get(GameBoyUtil.get2BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        ));
+
+        short r16 = getR16.apply(cpu);
+        int result = GameBoyUtil.zeroExtendShort(r16) + 1;
+
+        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_MAP.get(GameBoyUtil.get2BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        ));
+        setR16.accept((short) result, cpu);
+    }
+
+    /**
+     * corresponds to DEC r16 instruction
+     */
+    public static void executeDEC_r16(byte instruction, CPU cpu) {
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_MAP.get(GameBoyUtil.get2BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        ));
+
+        short r16 = getR16.apply(cpu);
+        int result = GameBoyUtil.zeroExtendShort(r16) - 1;
+
+        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_MAP.get(GameBoyUtil.get2BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        ));
+        setR16.accept((short) result, cpu);
+    }
 
     /**
      * updates carry flag based on the result of operand1 + operand2 + operand3
