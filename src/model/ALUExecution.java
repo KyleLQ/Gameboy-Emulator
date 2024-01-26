@@ -171,7 +171,24 @@ public class ALUExecution {
      * corresponds to DEC r8 instruction
      */
     public static void executeDEC_r8(byte instruction, CPU cpu) {
+        Function<CPU, Byte> getR8 = INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
 
+        byte r8 = getR8.apply(cpu);
+        int result = GameBoyUtil.zeroExtendByte(r8) - 1;
+        cpu.setZeroFlag((result == 0) ? 1 : 0);
+        cpu.setSubtractionFlag(1);
+        updateHalfCarryFlagSubtractionR8(r8, (byte) 1, (byte) 0, cpu);
+
+        BiConsumer<Byte, CPU> setR8 = INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                GameBoyUtil.getBitFromPosInByte(instruction, 3)
+        ));
+
+        setR8.accept((byte) result, cpu);
     }
 
 
