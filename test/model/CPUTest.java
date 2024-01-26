@@ -1,5 +1,6 @@
 package model;
 
+import exception.CPUException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import testutil.TestUtil;
@@ -48,5 +49,18 @@ public class CPUTest {
         assertEquals(0, cpu.getHalfCarryFlag());
         cpu.setCarryFlag(1);
         assertEquals(1, cpu.getCarryFlag());
+    }
+
+    @Test
+    public void testUnknownInstruction() {
+        byte instruction = (byte) 0b11011011;
+        try {
+            cpu.decodeInstruction(instruction);
+            fail("Expected to throw CPU exception!");
+        } catch (CPUException e) {
+
+        } catch (Exception e) {
+            fail("Expected to throw CPU exception!");
+        }
     }
 }

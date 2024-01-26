@@ -77,5 +77,13 @@ public class GameBoyUtil {
         return ((int) s) & 0x0000ffff;
     }
 
-    // helper method to interpret bytes as unsigned ints
+    /**
+     * @param b the byte to convert
+     * @return a string representing the value of b in binary. (A similar method exists in TestUtil, but
+     * this doesn't add the prefix "0b")
+     */
+    public static String convertByteToBinaryString(byte b) {
+        return String.format("%8s",
+                        Integer.toBinaryString(GameBoyUtil.zeroExtendByte(b))).replace(' ', '0');
+    }
 }

@@ -4,6 +4,10 @@ import util.GameBoyUtil;
 import exception.CPUException;
 
 import java.nio.ByteBuffer;
+import java.util.AbstractMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 
 public class CPU {
 
@@ -12,50 +16,33 @@ public class CPU {
     private byte ra,rb,rc,rd,re,rf,rh,rl;
     private short sp;
 
-    public CPU () {
-    }
 
     // opcodes are always one byte long. If you need a constant, then you look at the byte(s) after
     // the opcode.
-
+    // CB prefix are one byte that tells you to switch to a different instruction table.
 
     // handle the alu instructions only first
-    // NEED A BETTER DESIGN FOR THIS!!!!!!!!!!!!!!!!!!!!!!!!
-    // todo: idea: make a list of regex patterns matching all the possible instruction types,
-    // for each new instruction, iterate through the list until you find a match, then call associated function.
-    // advantage: shorter code
-    // disadvantage: slower (probably not relevant)
+    private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_EXECUTION_MAP = Map.ofEntries(
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^10[01]{6}$"), ALUExecution::executeALU_A_r8),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}1001$"), ALUExecution::executeADD_HL_r16),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{3}100$"), ALUExecution::executeINC_r8),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{3}101$"), ALUExecution::executeDEC_r8),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}0011$"), ALUExecution::executeINC_r16),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}1011$"), ALUExecution::executeDEC_r16)
+    );
+
+    public CPU () {
+    }
+
     public void decodeInstruction(byte instruction) {
-        if (GameBoyUtil.getBitFromPosInByte(instruction, 7) == 1) {
-            if (GameBoyUtil.getBitFromPosInByte(instruction, 6) == 1) {
-
-            } else {
-                ALUExecution.executeALU_A_r8(instruction, this);
-            }
-        } else {
-            if (GameBoyUtil.getBitFromPosInByte(instruction, 6) == 1) {
-
-            } else {
-                if (GameBoyUtil.getNibble(true, instruction) == 0b1001) {
-                    ALUExecution.executeADD_HL_r16(instruction, this);
-                } else if (GameBoyUtil.getBitFromPosInByte(instruction, 2) == 1 &&
-                        GameBoyUtil.getBitFromPosInByte(instruction, 1) == 0) {
-                    if ((GameBoyUtil.getBitFromPosInByte(instruction, 0) == 0)) {
-                        ALUExecution.executeINC_r8(instruction, this);
-                    } else {
-                        ALUExecution.executeDEC_r8(instruction, this);
-                    }
-                } else if (GameBoyUtil.get3BitValue(GameBoyUtil.getBitFromPosInByte(instruction, 2),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 1),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 0)) == 3) {
-                    if (GameBoyUtil.getBitFromPosInByte(instruction, 3) == 0) {
-                        ALUExecution.executeINC_r16(instruction, this);
-                    } else {
-                        ALUExecution.executeDEC_r16(instruction, this);
-                    }
-                }
+        String binaryString = GameBoyUtil.convertByteToBinaryString(instruction);
+        for (Map.Entry<Pattern, BiConsumer<Byte, CPU>> mapEntry : REGEX_TO_EXECUTION_MAP.entrySet()) {
+            if (mapEntry.getKey().matcher(binaryString).find()) {
+               mapEntry.getValue().accept(instruction, this);
+               return;
             }
         }
+        throw new CPUException("Unknown instruction: " + binaryString);
     }
 
     public int getZeroFlag() {
