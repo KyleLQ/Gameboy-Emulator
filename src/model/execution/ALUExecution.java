@@ -1,5 +1,6 @@
-package model;
+package model.execution;
 
+import model.CPU;
 import util.GameBoyUtil;
 
 import java.util.Arrays;
@@ -7,34 +8,10 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+/**
+ * class containing methods that execute ALU operations
+ */
 public class ALUExecution {
-
-
-    // return (byte) 0 is just a placeholder for (HL) todo
-    private static final List<Function<CPU, Byte>> INSTRUCTION_TO_GET_R8_MAP = Arrays.asList(
-            CPU::getRb,
-            CPU::getRc,
-            CPU::getRd,
-            CPU::getRe,
-            CPU::getRh,
-            CPU::getRl,
-            (CPU cpu) -> {
-                return (byte) 0;
-            },
-            CPU::getRa
-    );
-
-    // the empty method is a placeholder for (HL) todo
-    private static final List<BiConsumer<Byte, CPU>> INSTRUCTION_TO_SET_R8_MAP = Arrays.asList(
-            (Byte b, CPU cpu) -> cpu.setRb(b),
-            (Byte b, CPU cpu) -> cpu.setRc(b),
-            (Byte b, CPU cpu) -> cpu.setRd(b),
-            (Byte b, CPU cpu) -> cpu.setRe(b),
-            (Byte b, CPU cpu) -> cpu.setRh(b),
-            (Byte b, CPU cpu) -> cpu.setRl(b),
-            (Byte b, CPU cpu) -> {},
-            (Byte b, CPU cpu) -> cpu.setRa(b)
-    );
 
     private static final List<Function<CPU, Short>> INSTRUCTION_TO_GET_R16_MAP = Arrays.asList(
             CPU::getRegisterBC,
@@ -120,7 +97,7 @@ public class ALUExecution {
      * corresponds to ALU A,r8 instruction.
      */
     public static void executeALU_A_r8(byte instruction, CPU cpu) {
-        Function<CPU, Byte> getR8 = INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
+        Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 2),
                 GameBoyUtil.getBitFromPosInByte(instruction, 1),
                 GameBoyUtil.getBitFromPosInByte(instruction, 0)));
@@ -158,7 +135,7 @@ public class ALUExecution {
      */
     public static void executeINC_r8(byte instruction, CPU cpu) {
 
-        Function<CPU, Byte> getR8 = INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
+        Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 5),
                 GameBoyUtil.getBitFromPosInByte(instruction, 4),
                 GameBoyUtil.getBitFromPosInByte(instruction, 3)));
@@ -169,7 +146,7 @@ public class ALUExecution {
         cpu.setSubtractionFlag(0);
         updateHalfCarryFlagAdditionR8(r8, (byte) 1, (byte) 0, cpu);
 
-        BiConsumer<Byte, CPU> setR8 = INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
+        BiConsumer<Byte, CPU> setR8 = GameBoyUtil.INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
            GameBoyUtil.getBitFromPosInByte(instruction, 5),
            GameBoyUtil.getBitFromPosInByte(instruction, 4),
            GameBoyUtil.getBitFromPosInByte(instruction, 3)
@@ -183,7 +160,7 @@ public class ALUExecution {
      * corresponds to DEC r8 instruction
      */
     public static void executeDEC_r8(byte instruction, CPU cpu) {
-        Function<CPU, Byte> getR8 = INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
+        Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 5),
                 GameBoyUtil.getBitFromPosInByte(instruction, 4),
                 GameBoyUtil.getBitFromPosInByte(instruction, 3)));
@@ -194,7 +171,7 @@ public class ALUExecution {
         cpu.setSubtractionFlag(1);
         updateHalfCarryFlagSubtractionR8(r8, (byte) 1, (byte) 0, cpu);
 
-        BiConsumer<Byte, CPU> setR8 = INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
+        BiConsumer<Byte, CPU> setR8 = GameBoyUtil.INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 5),
                 GameBoyUtil.getBitFromPosInByte(instruction, 4),
                 GameBoyUtil.getBitFromPosInByte(instruction, 3)

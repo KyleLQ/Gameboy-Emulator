@@ -1,5 +1,6 @@
-package model;
+package model.execution;
 
+import model.CPU;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import testutil.TestUtil;

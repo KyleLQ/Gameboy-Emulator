@@ -1,5 +1,7 @@
 package model;
 
+import model.execution.ALUExecution;
+import model.execution.BitOpExecution;
 import util.GameBoyUtil;
 import exception.CPUException;
 
@@ -23,12 +25,29 @@ public class CPU {
 
     // handle the alu instructions only first
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_EXECUTION_MAP = Map.ofEntries(
-            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^10[01]{6}$"), ALUExecution::executeALU_A_r8),
-            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}1001$"), ALUExecution::executeADD_HL_r16),
-            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{3}100$"), ALUExecution::executeINC_r8),
-            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{3}101$"), ALUExecution::executeDEC_r8),
-            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}0011$"), ALUExecution::executeINC_r16),
-            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}1011$"), ALUExecution::executeDEC_r16)
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^10[01]{6}$"),
+                    ALUExecution::executeALU_A_r8),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}1001$"),
+                    ALUExecution::executeADD_HL_r16),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{3}100$"),
+                    ALUExecution::executeINC_r8),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{3}101$"),
+                    ALUExecution::executeDEC_r8),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}0011$"),
+                    ALUExecution::executeINC_r16),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}1011$"),
+                    ALUExecution::executeDEC_r16)
+    );
+
+    private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_CB_EXECUTION_MAP = Map.ofEntries(
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{6}$"),
+                    BitOpExecution::executeSHIFT_ROTATE),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^01[01]{6}$"),
+                    BitOpExecution::executeBIT_bit_r8),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^10[01]{6}$"),
+                    BitOpExecution::executeRES_bit_r8),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11[01]{6}$"),
+                    BitOpExecution::executeSET_bit_r8)
     );
 
     public CPU () {
@@ -40,6 +59,19 @@ public class CPU {
             if (mapEntry.getKey().matcher(binaryString).find()) {
                mapEntry.getValue().accept(instruction, this);
                return;
+            }
+        }
+        throw new CPUException("Unknown instruction: " + binaryString);
+    }
+
+    // todo should be private later if not too much work, public right now for testing purposes
+    // this might not even be the right location for this method (BitOpExecution instead?)
+    public void decodeCBInstruction(byte instruction) {
+        String binaryString = GameBoyUtil.convertByteToBinaryString(instruction);
+        for (Map.Entry<Pattern, BiConsumer<Byte, CPU>> mapEntry : REGEX_TO_CB_EXECUTION_MAP.entrySet()) {
+            if (mapEntry.getKey().matcher(binaryString).find()) {
+                mapEntry.getValue().accept(instruction, this);
+                return;
             }
         }
         throw new CPUException("Unknown instruction: " + binaryString);

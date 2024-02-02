@@ -1,12 +1,44 @@
 package util;
 
 import exception.CPUException;
+import model.CPU;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class GameBoyUtil {
     public static final int UNSIGNED_SHORT_MAX = 65535;
     public static final int UNSIGNED_12_BIT_MAX = 4095;
     public static final int UNSIGNED_BYTE_MAX = 255;
     public static final int UNSIGNED_NIBBLE_MAX = 15;
+
+    // return (byte) 0 is just a placeholder for (HL) todo
+    public static final List<Function<CPU, Byte>> INSTRUCTION_TO_GET_R8_MAP = Arrays.asList(
+            CPU::getRb,
+            CPU::getRc,
+            CPU::getRd,
+            CPU::getRe,
+            CPU::getRh,
+            CPU::getRl,
+            (CPU cpu) -> {
+                return (byte) 0;
+            },
+            CPU::getRa
+    );
+
+    // the empty method is a placeholder for (HL) todo
+    public static final List<BiConsumer<Byte, CPU>> INSTRUCTION_TO_SET_R8_MAP = Arrays.asList(
+            (Byte b, CPU cpu) -> cpu.setRb(b),
+            (Byte b, CPU cpu) -> cpu.setRc(b),
+            (Byte b, CPU cpu) -> cpu.setRd(b),
+            (Byte b, CPU cpu) -> cpu.setRe(b),
+            (Byte b, CPU cpu) -> cpu.setRh(b),
+            (Byte b, CPU cpu) -> cpu.setRl(b),
+            (Byte b, CPU cpu) -> {},
+            (Byte b, CPU cpu) -> cpu.setRa(b)
+    );
 
     /**
      * @param b the byte to get the bit from
