@@ -31,6 +31,45 @@ public class GameBoyUtilTest {
     }
 
     @Test
+    public void testModifyBitOnPosInByte() {
+        byte b = (byte) 0b10101010;
+        b = GameBoyUtil.modifyBitOnPosInByte(b,0, 1);
+        assertEquals((byte) 0b10101011, b);
+        b = GameBoyUtil.modifyBitOnPosInByte(b,1, 0);
+        assertEquals((byte) 0b10101001, b);
+        b = GameBoyUtil.modifyBitOnPosInByte(b,2, 1);
+        assertEquals((byte) 0b10101101, b);
+        b = GameBoyUtil.modifyBitOnPosInByte(b,3, 0);
+        assertEquals((byte) 0b10100101, b);
+        b = GameBoyUtil.modifyBitOnPosInByte(b,4, 1);
+        assertEquals((byte) 0b10110101, b);
+        b = GameBoyUtil.modifyBitOnPosInByte(b,5, 0);
+        assertEquals((byte) 0b10010101, b);
+        b = GameBoyUtil.modifyBitOnPosInByte(b,6, 1);
+        assertEquals((byte) 0b11010101, b);
+        b = GameBoyUtil.modifyBitOnPosInByte(b,7, 0);
+        assertEquals((byte) 0b01010101, b);
+
+        try {
+            GameBoyUtil.modifyBitOnPosInByte(b, 8, 1);
+            fail("pos is out of bounds, but didn't fail");
+        } catch (CPUException e) {
+
+        } catch (Exception e) {
+            fail("pos is out of bounds, and failed with wrong exception");
+        }
+
+        try {
+            GameBoyUtil.modifyBitOnPosInByte(b,1,2);
+            fail("bit is out of bounds, but didn't fail");
+        } catch (CPUException e) {
+
+        } catch (Exception e) {
+            fail("bit is out of bounds, and failed with wrong exception");
+        }
+    }
+
+    @Test
     public void testZeroExtensionByte() {
         byte b = (byte) 0xff;
         int i = GameBoyUtil.zeroExtendByte(b);

@@ -57,6 +57,26 @@ public class GameBoyUtil {
     }
 
     /**
+     * @param b the byte to modify
+     * @param pos the position of the bit in b to modify
+     * @param bit the value to modify b[pos] to, 0 or 1
+     * @return byte b, but with b[pos] modified to bit's value
+     */
+    public static byte modifyBitOnPosInByte(byte b, int pos, int bit) {
+        if (pos < 0 || pos > 7) {
+            throw new CPUException("pos is out of range!");
+        }
+
+        if (bit == 0) {
+            return (byte) (b & ~(0b00000001 << pos));
+        } else if (bit == 1) {
+            return (byte) (b | 0b00000001 << pos);
+        } else {
+            throw new CPUException("bit out of bounds!");
+        }
+    }
+
+    /**
      * @param bit2 the bit at position 2 of return value
      * @param bit1 the bit at position 1 of return value
      * @param bit0 the bit at position 0 of return value
