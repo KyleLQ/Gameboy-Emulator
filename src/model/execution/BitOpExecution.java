@@ -7,11 +7,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * class containing methods that execute misc bit operations, including
- * bit shift, set, reset, test, and nibble swap operations
+ * bit shift, set, reset, test, nibble swap, DAA, and flag operations
  */
 public class BitOpExecution {
 
@@ -97,6 +98,99 @@ public class BitOpExecution {
                 cpu.setSubtractionFlag(0);
                 cpu.setHalfCarryFlag(0);
                 return byteResult;
+            }
+    );
+
+    private static final List<Consumer<CPU>> INSTRUCTION_TO_ACCUMULATOR_FLAG_MAP = Arrays.asList(
+            (CPU cpu) -> {
+                byte accumulatorValue = cpu.getRa();
+                int bit7Value = GameBoyUtil.getBitFromPosInByte(accumulatorValue, 7);
+                int result = accumulatorValue << 1;
+                byte byteResult = (byte) result;
+                byteResult = GameBoyUtil.modifyBitOnPosInByte(byteResult, 0, bit7Value);
+                cpu.setRa(byteResult);
+                cpu.setZeroFlag(0);
+                cpu.setSubtractionFlag(0);
+                cpu.setHalfCarryFlag(0);
+                cpu.setCarryFlag(bit7Value);
+            },
+            (CPU cpu) -> {
+                byte accumulatorValue = cpu.getRa();
+                int bit0Value = GameBoyUtil.getBitFromPosInByte(accumulatorValue, 0);
+                int result = accumulatorValue >>> 1;
+                byte byteResult = (byte) result;
+                byteResult = GameBoyUtil.modifyBitOnPosInByte(byteResult, 7, bit0Value);
+                cpu.setRa(byteResult);
+                cpu.setZeroFlag(0);
+                cpu.setSubtractionFlag(0);
+                cpu.setHalfCarryFlag(0);
+                cpu.setCarryFlag(bit0Value);
+            },
+            (CPU cpu) -> {
+                byte accumulatorValue = cpu.getRa();
+                int carryValue = cpu.getCarryFlag();
+                cpu.setCarryFlag(GameBoyUtil.getBitFromPosInByte(accumulatorValue, 7));
+                int result = accumulatorValue << 1;
+                byte byteResult = (byte) result;
+                byteResult = GameBoyUtil.modifyBitOnPosInByte(byteResult, 0, carryValue);
+                cpu.setRa(byteResult);
+                cpu.setZeroFlag(0);
+                cpu.setSubtractionFlag(0);
+                cpu.setHalfCarryFlag(0);
+            },
+            (CPU cpu) -> {
+                byte accumulatorValue = cpu.getRa();
+                int carryValue = cpu.getCarryFlag();
+                cpu.setCarryFlag(GameBoyUtil.getBitFromPosInByte(accumulatorValue, 0));
+                int result = accumulatorValue >>> 1;
+                byte byteResult = (byte) result;
+                byteResult = GameBoyUtil.modifyBitOnPosInByte(byteResult, 7, carryValue);
+                cpu.setRa(byteResult);
+                cpu.setZeroFlag(0);
+                cpu.setSubtractionFlag(0);
+                cpu.setHalfCarryFlag(0);
+            },
+            (CPU cpu) -> {
+                // todo ??????? - pretty sure this is right
+                byte accumulatorValue = cpu.getRa();
+                int lowerNibble = GameBoyUtil.getNibble(true, accumulatorValue);
+                int upperNibble = GameBoyUtil.getNibble(false, accumulatorValue);
+                int newCarryValue = 0;
+                if (cpu.getSubtractionFlag() == 0) {
+                    if (cpu.getHalfCarryFlag() == 1 || lowerNibble > 9) {
+                        lowerNibble += 6;
+                    }
+                    if (cpu.getCarryFlag() == 1 || GameBoyUtil.zeroExtendByte(accumulatorValue) > 0x99) {
+                        upperNibble += 6;
+                        newCarryValue = 1;
+                    }
+                } else {
+                    if (cpu.getHalfCarryFlag() == 1) {
+                        lowerNibble -= 6;
+                    }
+                    if (cpu.getCarryFlag() == 1) {
+                        upperNibble -= 6;
+                    }
+                }
+                cpu.setRa((byte) (upperNibble * 16 + lowerNibble));
+                cpu.setZeroFlag((GameBoyUtil.zeroExtendByte(cpu.getRa()) == 0) ? 1 : 0);
+                cpu.setHalfCarryFlag(0);
+                cpu.setCarryFlag(newCarryValue);
+            },
+            (CPU cpu) -> {
+                cpu.setRa((byte) (~cpu.getRa()));
+                cpu.setSubtractionFlag(1);
+                cpu.setHalfCarryFlag(1);
+            },
+            (CPU cpu) -> {
+                cpu.setSubtractionFlag(0);
+                cpu.setHalfCarryFlag(0);
+                cpu.setCarryFlag(1);
+            },
+            (CPU cpu) -> {
+                cpu.setSubtractionFlag(0);
+                cpu.setHalfCarryFlag(0);
+                cpu.setCarryFlag((cpu.getCarryFlag() == 0) ? 1 : 0);
             }
     );
 
@@ -195,5 +289,17 @@ public class BitOpExecution {
         ));
 
         setR8.accept(result, cpu);
+    }
+
+    /**
+     * corresponds to instructions related to accumulators and flags:
+     * RLCA, RRCA, RLA, RRA, DAA, CPL, SCF, CCF
+     */
+    public static void executeACCUMULATOR_FLAG_OPS(byte instruction, CPU cpu) {
+        Consumer<CPU> accumulatorFlagFunction = INSTRUCTION_TO_ACCUMULATOR_FLAG_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+        accumulatorFlagFunction.accept(cpu);
     }
 }
