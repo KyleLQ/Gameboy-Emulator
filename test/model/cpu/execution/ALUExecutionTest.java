@@ -22,7 +22,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b10000000;
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()) + " + " +
                 TestUtil.convertByteToUnsignedString(cpu.getRb()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
         assertEquals((byte) 6, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -34,7 +34,7 @@ public class ALUExecutionTest {
         cpu.setRb((byte) 0b1);
         instruction = (byte) 0b10000000;
         System.out.println("Test overflow");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
         assertEquals((byte) 0, cpu.getRa());
         assertEquals(1, cpu.getZeroFlag());
@@ -51,7 +51,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b10001001;
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()) + " ADC " +
                 TestUtil.convertByteToUnsignedString(cpu.getRc()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
         assertEquals((byte) 18, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -67,7 +67,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b10010010;
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()) + " - " +
                 TestUtil.convertByteToUnsignedString(cpu.getRd()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
         assertEquals((byte) 1, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -79,7 +79,7 @@ public class ALUExecutionTest {
         cpu.setRd((byte) 11);
         instruction = (byte) 0b10010010;
         System.out.println("Test underflow");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
         assertEquals((byte) 255, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -96,7 +96,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b10011011;
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()) + " SUBC " +
                 TestUtil.convertByteToUnsignedString(cpu.getRe()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
         assertEquals((byte) 51, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -112,7 +112,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b10100100;
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()) + " AND " +
                 TestUtil.convertByteToBinaryString(cpu.getRh()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()));
         assertEquals((byte) 0b01000000, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -128,7 +128,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b10101101;
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()) + " XOR " +
                 TestUtil.convertByteToBinaryString(cpu.getRl()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()));
         assertEquals((byte) 0b10101111, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -144,7 +144,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b10110101;
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()) + " OR " +
                 TestUtil.convertByteToBinaryString(cpu.getRl()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()));
         assertEquals((byte) 0b11111010, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -160,7 +160,7 @@ public class ALUExecutionTest {
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()) + " CP " +
                 TestUtil.convertByteToUnsignedString(cpu.getRa()) + " = ");
         int originalRa = cpu.getRa();
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
         assertEquals(originalRa, cpu.getRa());
         assertEquals(1, cpu.getZeroFlag());
@@ -176,7 +176,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b00001001;
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterBC()) + " + " +
                 TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()));
         assertEquals((short) 17, cpu.getRegisterHL());
         assertEquals(0, cpu.getSubtractionFlag());
@@ -188,7 +188,7 @@ public class ALUExecutionTest {
         instruction = (byte) 0b00011001;
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterDE()) + " + " +
                 TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()));
         assertEquals((short) 377, cpu.getRegisterHL());
         assertEquals(0, cpu.getSubtractionFlag());
@@ -202,7 +202,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b00101001;
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()) + " + " +
                 TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()));
         assertEquals((short) 0, cpu.getRegisterHL());
         assertEquals(0, cpu.getSubtractionFlag());
@@ -217,7 +217,7 @@ public class ALUExecutionTest {
         byte instruction = (byte) 0b00111001;
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getStackPointer()) + " + " +
                 TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()));
         assertEquals((short) 4096, cpu.getRegisterHL());
         assertEquals(0, cpu.getSubtractionFlag());
@@ -231,7 +231,7 @@ public class ALUExecutionTest {
         cpu.setRb((byte) 5);
         byte instruction = (byte) 0b00000100;
         System.out.println("INC " + TestUtil.convertByteToUnsignedString(cpu.getRb()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRb()));
         assertEquals((byte) 6, cpu.getRb());
         assertEquals(0, cpu.getZeroFlag());
@@ -243,7 +243,7 @@ public class ALUExecutionTest {
         cpu.setRc((byte) 207);
         instruction = (byte) 0b00001100;
         System.out.println("INC " + TestUtil.convertByteToUnsignedString(cpu.getRc()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRc()));
         assertEquals((byte) 208, cpu.getRc());
         assertEquals(0, cpu.getZeroFlag());
@@ -258,7 +258,7 @@ public class ALUExecutionTest {
         cpu.setRa((byte) 10);
         byte instruction = (byte) 0b00111101;
         System.out.println("DEC " + TestUtil.convertByteToUnsignedString(cpu.getRa()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
         assertEquals((byte) 9, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -270,7 +270,7 @@ public class ALUExecutionTest {
         cpu.setRh((byte) 64);
         instruction = (byte) 0b00100101;
         System.out.println("DEC " + TestUtil.convertByteToUnsignedString(cpu.getRh()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRh()));
         assertEquals((byte) 63, cpu.getRh());
         assertEquals(0, cpu.getZeroFlag());
@@ -288,7 +288,7 @@ public class ALUExecutionTest {
         cpu.setRegisterBC((short) 580);
         byte instruction = (byte) 0b00000011;
         System.out.println("INC " + TestUtil.convertShortToUnsignedString(cpu.getRegisterBC()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterBC()));
         assertEquals((short) 581, cpu.getRegisterBC());
 
@@ -308,7 +308,7 @@ public class ALUExecutionTest {
         cpu.setRegisterHL((short) 362);
         byte instruction = (byte) 0b00101011;
         System.out.println("DEC " + TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()) + " = ");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertShortToUnsignedString(cpu.getRegisterHL()));
         assertEquals((short) 361, cpu.getRegisterHL());
 

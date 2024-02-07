@@ -23,7 +23,7 @@ public class BitOpExecutionTest {
         cpu.setRb((byte) 0b10101010);
         byte instruction = (byte) 0b00000000;
         System.out.println("RLC " + TestUtil.convertByteToBinaryString(cpu.getRb()));
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRb()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b01010101, cpu.getRb());
@@ -42,7 +42,7 @@ public class BitOpExecutionTest {
         cpu.setRc((byte) 0b11110000);
         byte instruction = (byte) 0b00001001;
         System.out.println("RRC " + TestUtil.convertByteToBinaryString(cpu.getRc()));
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRc()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b01111000, cpu.getRc());
@@ -62,7 +62,7 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b00010010;
         System.out.println("RL " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b00000000, cpu.getRd());
@@ -82,7 +82,7 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b00011010;
         System.out.println("RR " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b10011010, cpu.getRd());
@@ -102,7 +102,7 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b00100010;
         System.out.println("SLA " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b10000110, cpu.getRd());
@@ -122,7 +122,7 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b00101010;
         System.out.println("SRA " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b11000000, cpu.getRd());
@@ -141,7 +141,7 @@ public class BitOpExecutionTest {
         cpu.setRl((byte) 0b01001010);
         byte instruction = (byte) 0b00110101;
         System.out.println("SWAP " + TestUtil.convertByteToBinaryString(cpu.getRl()));
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRl()));
         assertEquals((byte) 0b10100100, cpu.getRl());
         assertEquals(0, cpu.getZeroFlag());
@@ -160,7 +160,7 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b00111010;
         System.out.println("SRL " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRd()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b00000000, cpu.getRd());
@@ -177,7 +177,7 @@ public class BitOpExecutionTest {
         cpu.setRb((byte) 0b11110000);
         byte instruction = (byte) 0b01111000;
         System.out.println("Bit at pos 7 of  " + TestUtil.convertByteToBinaryString(cpu.getRb()) + " is zero: ");
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println(cpu.getZeroFlag() == 1);
         assertEquals(0, cpu.getZeroFlag()); // unchanged
         assertEquals(0, cpu.getSubtractionFlag());
@@ -190,7 +190,7 @@ public class BitOpExecutionTest {
         cpu.setRe((byte) 0b01010101);
         instruction = (byte) 0b01001011;
         System.out.println("Bit at pos 1 of " + TestUtil.convertByteToBinaryString(cpu.getRe()) + " is zero: ");
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println(cpu.getZeroFlag() == 1);
         assertEquals(1, cpu.getZeroFlag());
         assertEquals(0, cpu.getSubtractionFlag());
@@ -208,7 +208,7 @@ public class BitOpExecutionTest {
         cpu.setRb((byte) 0b11110000);
         byte instruction = (byte) 0b10110000;
         System.out.println("Bit at pos 6 of " + TestUtil.convertByteToBinaryString(cpu.getRb()) + " is set to zero: ");
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRb()));
         assertEquals(cpu.getRb(), (byte) 0b10110000);
         assertEquals(0, cpu.getZeroFlag()); // flags all should not be modified
@@ -226,7 +226,7 @@ public class BitOpExecutionTest {
         cpu.setRa((byte) 0b11110000);
         byte instruction = (byte) 0b11010111;
         System.out.println("Bit at pos 2 of " + TestUtil.convertByteToBinaryString(cpu.getRa()) + " is set to one: ");
-        cpu.decodeCBInstruction(instruction);
+        cpu.decodeExecuteCBInstruction(instruction);
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()));
         assertEquals(cpu.getRa(), (byte) 0b11110100);
         assertEquals(1, cpu.getZeroFlag()); // flags all should not be modified
@@ -244,7 +244,7 @@ public class BitOpExecutionTest {
         cpu.setRa((byte) 0b10101010);
         byte instruction = (byte) 0b00000111;
         System.out.println("RLCA " + TestUtil.convertByteToBinaryString(cpu.getRa()));
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRa()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b01010101, cpu.getRa());
@@ -263,7 +263,7 @@ public class BitOpExecutionTest {
         cpu.setRa((byte) 0b11100000);
         byte instruction = (byte) 0b00001111;
         System.out.println("RRCA " + TestUtil.convertByteToBinaryString(cpu.getRa()));
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRa()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b01110000, cpu.getRa());
@@ -283,7 +283,7 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b00010111;
         System.out.println("RLA " + TestUtil.convertByteToBinaryString(cpu.getRa()) +
                 ", carry: " + cpu.getCarryFlag());
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRa()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b00000000, cpu.getRa());
@@ -303,7 +303,7 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b00011111;
         System.out.println("RRA " + TestUtil.convertByteToBinaryString(cpu.getRa()) +
                 ", carry: " + cpu.getCarryFlag());
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println("Register: " + TestUtil.convertByteToBinaryString(cpu.getRa()) +
                 ", carry: " + cpu.getCarryFlag());
         assertEquals((byte) 0b10011010, cpu.getRa());
@@ -324,13 +324,13 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b10000000;
         System.out.println(TestUtil.convertToHexString(cpu.getRa()) + " + " +
                 TestUtil.convertToHexString(cpu.getRb()) + " =");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertToHexString(cpu.getRa()));
 
         System.out.println("Apply DAA on " + TestUtil.convertToHexString(cpu.getRa()) + " to convert to BCD");
         instruction = (byte) 0b00100111;
         int prevSubtractionValue = cpu.getSubtractionFlag();
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertToHexString(cpu.getRa()));
         assertEquals((byte) 0x15, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -346,13 +346,13 @@ public class BitOpExecutionTest {
         instruction = (byte) 0b10000000;
         System.out.println(TestUtil.convertToHexString(cpu.getRa()) + " + " +
                 TestUtil.convertToHexString(cpu.getRb()) + " =");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertToHexString(cpu.getRa()));
 
         System.out.println("Apply DAA on " + TestUtil.convertToHexString(cpu.getRa()) + " to convert to BCD");
         instruction = (byte) 0b00100111;
         prevSubtractionValue = cpu.getSubtractionFlag();
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertToHexString(cpu.getRa()));
         assertEquals((byte) 0x43, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -372,13 +372,13 @@ public class BitOpExecutionTest {
         byte instruction = (byte) 0b10010000;
         System.out.println(TestUtil.convertToHexString(cpu.getRa()) + " - " +
                 TestUtil.convertToHexString(cpu.getRb()) + " =");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertToHexString(cpu.getRa()));
 
         System.out.println("Apply DAA on " + TestUtil.convertToHexString(cpu.getRa()) + " to convert to BCD");
         instruction = (byte) 0b00100111;
         int prevSubtractionValue = cpu.getSubtractionFlag();
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertToHexString(cpu.getRa()));
         assertEquals((byte) 0x22, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -394,13 +394,13 @@ public class BitOpExecutionTest {
         instruction = (byte) 0b10010000;
         System.out.println(TestUtil.convertToHexString(cpu.getRa()) + " - " +
                 TestUtil.convertToHexString(cpu.getRb()) + " =");
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertToHexString(cpu.getRa()));
 
         System.out.println("Apply DAA on " + TestUtil.convertToHexString(cpu.getRa()) + " to convert to BCD");
         instruction = (byte) 0b00100111;
         prevSubtractionValue = cpu.getSubtractionFlag();
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertToHexString(cpu.getRa()));
         assertEquals((byte) 0x17, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -418,7 +418,7 @@ public class BitOpExecutionTest {
         cpu.setRa((byte) 0b00110100);
         byte instruction = (byte) 0b00101111;
         System.out.println("CPL " + TestUtil.convertByteToBinaryString(cpu.getRa()));
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()));
         assertEquals((byte) 0b11001011, cpu.getRa());
         assertEquals(0, cpu.getZeroFlag());
@@ -435,7 +435,7 @@ public class BitOpExecutionTest {
         cpu.setCarryFlag(0);
         byte instruction = (byte) 0b00110111;
         System.out.println("SCF " + cpu.getCarryFlag());
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(cpu.getCarryFlag());
         assertEquals(1, cpu.getZeroFlag());
         assertEquals(0, cpu.getSubtractionFlag());
@@ -451,7 +451,7 @@ public class BitOpExecutionTest {
         cpu.setCarryFlag(1);
         byte instruction = (byte) 0b00111111;
         System.out.println("CCF " + cpu.getCarryFlag());
-        cpu.decodeInstruction(instruction);
+        cpu.decodeExecuteInstruction(instruction);
         System.out.println(cpu.getCarryFlag());
         assertEquals(1, cpu.getZeroFlag());
         assertEquals(0, cpu.getSubtractionFlag());

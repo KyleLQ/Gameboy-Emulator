@@ -55,12 +55,23 @@ public class CPUTest {
     public void testUnknownInstruction() {
         byte instruction = (byte) 0b11011011;
         try {
-            cpu.decodeInstruction(instruction);
+            cpu.decodeExecuteInstruction(instruction);
             fail("Expected to throw CPU exception!");
         } catch (CPUException e) {
 
         } catch (Exception e) {
             fail("Expected to throw CPU exception!");
         }
+    }
+
+    @Test
+    public void testPCIncrementByOneByte() {
+        // ADD A, r8 instruction, which is one byte in length
+        byte instruction = (byte) 0b10000000;
+        short startAddress = (short) 0xC000;
+        cpu.setProgramCounter(startAddress);
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.doInstructionCycle();
+        assertEquals((short) 0xC001, cpu.getProgramCounter());
     }
 }

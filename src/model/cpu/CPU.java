@@ -18,14 +18,9 @@ public class CPU {
     // can just interpret them as signed or unsigned
     private byte ra,rb,rc,rd,re,rf,rh,rl;
     private short sp;
+    private short pc;
     private Memory memory;
 
-
-    // opcodes are always one byte long. If you need a constant, then you look at the byte(s) after
-    // the opcode.
-    // CB prefix are one byte that tells you to switch to a different instruction table.
-
-    // handle the alu instructions only first
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_EXECUTION_MAP = Map.ofEntries(
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^10[01]{6}$"),
                     ALUExecution::executeALU_A_r8),
@@ -55,9 +50,30 @@ public class CPU {
     );
 
     public CPU () {
+        ra = 0;
+        rb = 0;
+        rc = 0;
+        rd = 0;
+        re = 0;
+        rf = 0;
+        rh = 0;
+        rl = 0;
+
+        sp = 0;
+        pc = 0;
+
+        memory = new Memory();
     }
 
-    public void decodeInstruction(byte instruction) {
+    // todo: Idk whether this refers to m or t cycles
+    public void doInstructionCycle() {
+        byte instruction = memory.getByte(pc);
+        decodeExecuteInstruction(instruction);
+        pc++;
+    }
+
+    // todo this should honestly be private too xd
+    public void decodeExecuteInstruction(byte instruction) {
         String binaryString = GameBoyUtil.convertByteToBinaryString(instruction);
         for (Map.Entry<Pattern, BiConsumer<Byte, CPU>> mapEntry : REGEX_TO_EXECUTION_MAP.entrySet()) {
             if (mapEntry.getKey().matcher(binaryString).find()) {
@@ -70,7 +86,7 @@ public class CPU {
 
     // todo should be private later if not too much work, public right now for testing purposes
     // this might not even be the right location for this method (BitOpExecution instead?)
-    public void decodeCBInstruction(byte instruction) {
+    public void decodeExecuteCBInstruction(byte instruction) {
         String binaryString = GameBoyUtil.convertByteToBinaryString(instruction);
         for (Map.Entry<Pattern, BiConsumer<Byte, CPU>> mapEntry : REGEX_TO_CB_EXECUTION_MAP.entrySet()) {
             if (mapEntry.getKey().matcher(binaryString).find()) {
@@ -193,12 +209,24 @@ public class CPU {
         rl = bb.get(1);
     }
 
+    public Memory getMemory() {
+        return memory;
+    }
+
     public short getStackPointer() {
         return sp;
     }
 
     public void setStackPointer(short value) {
         sp = value;
+    }
+
+    public short getProgramCounter() {
+        return pc;
+    }
+
+    public void setProgramCounter(short value) {
+        pc = value;
     }
 
     public byte getRa() {

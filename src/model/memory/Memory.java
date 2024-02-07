@@ -1,5 +1,7 @@
 package model.memory;
 
+import util.GameBoyUtil;
+
 import java.util.Arrays;
 
 /**
@@ -9,12 +11,16 @@ import java.util.Arrays;
 public class Memory {
     private byte[] memory;
 
-    Memory() {
+    public Memory() {
         memory = new byte[0xFFFF];
         Arrays.fill(memory, (byte) 0);
     }
 
-    public byte[] getMemory() {
-        return memory;
+    public byte getByte(short address) {
+        return memory[GameBoyUtil.zeroExtendShort(address)];
+    }
+
+    public void setByte(byte value, short address) {
+        memory[GameBoyUtil.zeroExtendShort(address)] = value;
     }
 }
