@@ -1,4 +1,4 @@
-package model;
+package model.cpu;
 
 import exception.CPUException;
 import org.junit.jupiter.api.BeforeEach;

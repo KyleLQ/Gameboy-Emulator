@@ -1,6 +1,6 @@
-package model.execution;
+package model.cpu.execution;
 
-import model.CPU;
+import model.cpu.CPU;
 import util.GameBoyUtil;
 
 import java.util.Arrays;

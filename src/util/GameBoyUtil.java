@@ -1,7 +1,7 @@
 package util;
 
 import exception.CPUException;
-import model.CPU;
+import model.cpu.CPU;
 
 import java.util.Arrays;
 import java.util.List;

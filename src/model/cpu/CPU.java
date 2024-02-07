@@ -1,7 +1,8 @@
-package model;
+package model.cpu;
 
-import model.execution.ALUExecution;
-import model.execution.BitOpExecution;
+import model.cpu.execution.ALUExecution;
+import model.cpu.execution.BitOpExecution;
+import model.memory.Memory;
 import util.GameBoyUtil;
 import exception.CPUException;
 
@@ -17,6 +18,7 @@ public class CPU {
     // can just interpret them as signed or unsigned
     private byte ra,rb,rc,rd,re,rf,rh,rl;
     private short sp;
+    private Memory memory;
 
 
     // opcodes are always one byte long. If you need a constant, then you look at the byte(s) after

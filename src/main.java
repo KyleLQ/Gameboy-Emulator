@@ -1,4 +1,4 @@
-import model.CPU;
+import model.cpu.CPU;
 
 public class main {
 
