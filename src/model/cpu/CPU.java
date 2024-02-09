@@ -2,6 +2,7 @@ package model.cpu;
 
 import model.cpu.execution.ALUExecution;
 import model.cpu.execution.BitOpExecution;
+import model.cpu.execution.ControlFlowExecution;
 import model.memory.Memory;
 import util.GameBoyUtil;
 import exception.CPUException;
@@ -35,7 +36,11 @@ public class CPU {
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}1011$"),
                     ALUExecution::executeDEC_r16),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{3}111$"),
-                    BitOpExecution::executeACCUMULATOR_FLAG_OPS)
+                    BitOpExecution::executeACCUMULATOR_FLAG_OPS),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00011000$"),
+                    ControlFlowExecution::executeJR_UNCONDITIONAL),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^001[01]{2}000$"),
+                    ControlFlowExecution::executeJR_CONDITIONAL)
     );
 
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_CB_EXECUTION_MAP = Map.ofEntries(
@@ -91,6 +96,7 @@ public class CPU {
         for (Map.Entry<Pattern, BiConsumer<Byte, CPU>> mapEntry : REGEX_TO_CB_EXECUTION_MAP.entrySet()) {
             if (mapEntry.getKey().matcher(binaryString).find()) {
                 mapEntry.getValue().accept(instruction, this);
+                pc++;
                 return;
             }
         }
