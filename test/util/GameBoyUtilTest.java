@@ -104,4 +104,12 @@ public class GameBoyUtilTest {
         assertEquals(10, upperNibble);
         assertEquals(5, lowerNibble);
     }
+
+    @Test
+    public void testGetShortFromBytes() {
+        byte lsb = (byte) 0b11001100;
+        byte msb = (byte) 0b01010101;
+        short result = GameBoyUtil.getShortFromBytes(lsb, msb);
+        assertEquals((short) 0b0101010111001100, result);
+    }
 }

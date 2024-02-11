@@ -138,4 +138,13 @@ public class GameBoyUtil {
         return String.format("%8s",
                         Integer.toBinaryString(GameBoyUtil.zeroExtendByte(b))).replace(' ', '0');
     }
+
+    /**
+     * @param lsb the least significant byte
+     * @param msb the most significant byte
+     * @return a short constructed from lsb and msb
+     */
+    public static Short getShortFromBytes(byte lsb, byte msb) {
+        return (short) (zeroExtendByte(lsb) + (zeroExtendByte(msb) << 8));
+    }
 }

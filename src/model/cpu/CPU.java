@@ -40,7 +40,11 @@ public class CPU {
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00011000$"),
                     ControlFlowExecution::executeJR_UNCONDITIONAL),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^001[01]{2}000$"),
-                    ControlFlowExecution::executeJR_CONDITIONAL)
+                    ControlFlowExecution::executeJR_CONDITIONAL),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11000011$"),
+                    ControlFlowExecution::executeJP_UNCONDITIONAL),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^110[01]{2}010$"),
+                    ControlFlowExecution::executeJP_CONDITIONAL)
     );
 
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_CB_EXECUTION_MAP = Map.ofEntries(

@@ -94,4 +94,52 @@ public class ControlFlowExecutionTest {
         System.out.println("pc = " + TestUtil.convertShortToUnsignedString(cpu.getProgramCounter()));
         assertEquals((short) 49650, cpu.getProgramCounter());
     }
+
+    @Test
+    public void testJP_UNCONDITIONAL() {
+        byte instruction = (byte) 0b11000011;
+        short startAddress = (short) 0xC100;
+        byte lsb = (byte) 0xFF;
+        byte msb = (byte) 0xD0;
+        cpu.setProgramCounter(startAddress);
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(lsb, (short) (startAddress + 1));
+        cpu.getMemory().setByte(msb, (short) (startAddress + 2));
+        System.out.println("JP UNCONDITIONAL, pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()) +
+                ", lsb = " + TestUtil.convertToHexString(lsb) + ", msb = " + TestUtil.convertToHexString(msb));
+        cpu.doInstructionCycle();
+        System.out.println("pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()));
+        assertEquals((short) 0xD0FF, cpu.getProgramCounter());
+    }
+
+    @Test
+    public void testJP_CONDITIONAL() {
+        cpu.setZeroFlag(1);
+        byte instruction = (byte) 0b11000010;
+        short startAddress = (short) 0xC100;
+        byte lsb = (byte) 0xFF;
+        byte msb = (byte) 0xD0;
+        cpu.setProgramCounter(startAddress);
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(lsb, (short) (startAddress + 1));
+        cpu.getMemory().setByte(msb, (short) (startAddress + 2));
+        System.out.println("JP CONDITIONAL, pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()) +
+                ", lsb = " + TestUtil.convertToHexString(lsb) + ", msb = " + TestUtil.convertToHexString(msb) +
+                ", NZ = " + ((cpu.getZeroFlag() == 1) ? 0 : 1));
+        cpu.doInstructionCycle();
+        System.out.println("pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()));
+        assertEquals((short) 0xC103, cpu.getProgramCounter());
+
+        instruction = (byte) 0b11001010;
+        cpu.setProgramCounter(startAddress);
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(lsb, (short) (startAddress + 1));
+        cpu.getMemory().setByte(msb, (short) (startAddress + 2));
+        System.out.println("JP CONDITIONAL, pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()) +
+                ", lsb = " + TestUtil.convertToHexString(lsb) + ", msb = " + TestUtil.convertToHexString(msb) +
+                ", Z = " + cpu.getZeroFlag());
+        cpu.doInstructionCycle();
+        System.out.println("pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()));
+        assertEquals((short) 0xD0FF, cpu.getProgramCounter());
+    }
 }

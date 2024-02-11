@@ -50,8 +50,43 @@ public class ControlFlowExecution {
         if (conditionFunction.apply(cpu) == 1) {
             executeJR_UNCONDITIONAL(instruction, cpu);
         } else {
-            // instruction is two bytes, while pc only increments by one at end of every fetch decode execute cycle
+            // offset is one extra byte, while pc only increments by one at end of every fetch decode execute cycle
             cpu.setProgramCounter((short) (cpu.getProgramCounter() + 1));
+        }
+    }
+
+    /**
+     * corresponds to unconditional absolute jump instruction. The address to set PC
+     * to is specified by the 2 bytes after instruction, in little Endian.
+     */
+    public static void executeJP_UNCONDITIONAL(byte instruction, CPU cpu) {
+        short pc = cpu.getProgramCounter();
+        byte lsb = cpu.getMemory().getByte((short) (pc + 1));
+        byte msb = cpu.getMemory().getByte((short) (pc + 2));
+        short nextPc = GameBoyUtil.getShortFromBytes(lsb, msb);
+        // account for pc incrementing by one at end of every fetch decode execute cycle
+        nextPc = (short) (nextPc - 1);
+        cpu.setProgramCounter(nextPc);
+    }
+
+    /**
+     * corresponds to conditional absolute jump instruction. The address to set PC
+     * to is specified by the 2 bytes after instruction, in little Endian.
+     *
+     * Conditions are based on the C and Z flags
+     */
+    public static void executeJP_CONDITIONAL(byte instruction, CPU cpu) {
+        Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
+                GameBoyUtil.get2BitValue(
+                        GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                        GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+
+        if (conditionFunction.apply(cpu) == 1) {
+            executeJP_UNCONDITIONAL(instruction, cpu);
+        } else {
+            // the address after the instruction is two extra bytes,
+            // while pc only increments by one at end of every fetch decode execute cycle
+            cpu.setProgramCounter((short) (cpu.getProgramCounter() + 2));
         }
     }
 }
