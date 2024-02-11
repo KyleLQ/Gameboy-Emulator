@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static util.GameBoyUtil.INSTRUCTION_TO_GET_R16_MAP;
-import static util.GameBoyUtil.INSTRUCTION_TO_SET_R16_MAP;
+import static util.GameBoyUtil.INSTRUCTION_TO_GET_R16_SP_MAP;
+import static util.GameBoyUtil.INSTRUCTION_TO_SET_R16_SP_MAP;
 
 /**
  * class containing methods that execute ALU operations
@@ -123,7 +123,7 @@ public class ALUExecution {
      * corresponds to the ADD HL, r16 instruction
      */
     public static void executeADD_HL_r16(byte instruction, CPU cpu) {
-       Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_MAP.get(GameBoyUtil.get2BitValue(
+       Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
                GameBoyUtil.getBitFromPosInByte(instruction, 5),
                GameBoyUtil.getBitFromPosInByte(instruction, 4)
        ));
@@ -191,7 +191,7 @@ public class ALUExecution {
      * corresponds to INC r16 instruction
      */
     public static void executeINC_r16(byte instruction, CPU cpu) {
-        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_MAP.get(GameBoyUtil.get2BitValue(
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 5),
                 GameBoyUtil.getBitFromPosInByte(instruction, 4)
         ));
@@ -199,7 +199,7 @@ public class ALUExecution {
         short r16 = getR16.apply(cpu);
         int result = GameBoyUtil.zeroExtendShort(r16) + 1;
 
-        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_MAP.get(GameBoyUtil.get2BitValue(
+        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 5),
                 GameBoyUtil.getBitFromPosInByte(instruction, 4)
         ));
@@ -210,7 +210,7 @@ public class ALUExecution {
      * corresponds to DEC r16 instruction
      */
     public static void executeDEC_r16(byte instruction, CPU cpu) {
-        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_MAP.get(GameBoyUtil.get2BitValue(
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 5),
                 GameBoyUtil.getBitFromPosInByte(instruction, 4)
         ));
@@ -218,7 +218,7 @@ public class ALUExecution {
         short r16 = getR16.apply(cpu);
         int result = GameBoyUtil.zeroExtendShort(r16) - 1;
 
-        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_MAP.get(GameBoyUtil.get2BitValue(
+        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 5),
                 GameBoyUtil.getBitFromPosInByte(instruction, 4)
         ));

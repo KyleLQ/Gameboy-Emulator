@@ -40,14 +40,14 @@ public class GameBoyUtil {
             (Byte b, CPU cpu) -> cpu.setRa(b)
     );
 
-    public static final List<Function<CPU, Short>> INSTRUCTION_TO_GET_R16_MAP = Arrays.asList(
+    public static final List<Function<CPU, Short>> INSTRUCTION_TO_GET_R16_SP_MAP = Arrays.asList(
             CPU::getRegisterBC,
             CPU::getRegisterDE,
             CPU::getRegisterHL,
             CPU::getStackPointer
     );
 
-    public static final List<BiConsumer<Short, CPU>> INSTRUCTION_TO_SET_R16_MAP = Arrays.asList(
+    public static final List<BiConsumer<Short, CPU>> INSTRUCTION_TO_SET_R16_SP_MAP = Arrays.asList(
             (Short s, CPU cpu) -> cpu.setRegisterBC(s),
             (Short s, CPU cpu) -> cpu.setRegisterDE(s),
             (Short s, CPU cpu) -> cpu.setRegisterHL(s),

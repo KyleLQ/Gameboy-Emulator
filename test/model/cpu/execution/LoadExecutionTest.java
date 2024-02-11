@@ -61,4 +61,48 @@ public class LoadExecutionTest {
         assertEquals(u16, cpu.getRegisterHL());
         assertEquals((short) 0xC303, cpu.getProgramCounter());
     }
+
+    @Test
+    public void testExecuteLD_Memory_r16_A() {
+        short hl = (short) 0xD000;
+        byte a = (byte) 0x12;
+        byte instruction = (byte) 0b00100010;
+        short startAddress = (short) 0xC000;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte((byte) 0, hl);
+        cpu.setRa(a);
+        cpu.setRegisterHL(hl);
+        cpu.setProgramCounter(startAddress);
+
+        System.out.println("Ld (r16), A: HL = " + TestUtil.convertToHexString(cpu.getRegisterHL()) +
+                ", A = " + TestUtil.convertToHexString(cpu.getRa()));
+        cpu.doInstructionCycle();
+        System.out.println("new HL = " + TestUtil.convertToHexString(cpu.getRegisterHL()) +
+                ", (old HL) = " + TestUtil.convertToHexString(cpu.getMemory().getByte((short) (cpu.getRegisterHL() - 1))));
+        assertEquals(a, cpu.getMemory().getByte(hl));
+        assertEquals((short) (hl + 1), cpu.getRegisterHL());
+    }
+
+    @Test
+    public void testExecuteLD_A_Memory_r16() {
+        short hl = (short) 0xD000;
+        byte hlVal = (byte) 0x34;
+        byte instruction = (byte) 0b00111010;
+        short startAddress = (short) 0xC000;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(hlVal, hl);
+        cpu.setRa((byte) 0);
+        cpu.setRegisterHL(hl);
+        cpu.setProgramCounter(startAddress);
+
+        System.out.println("Ld A, (r16): HL = " + TestUtil.convertToHexString(cpu.getRegisterHL()) +
+                ", (HL) = " + TestUtil.convertToHexString(cpu.getMemory().getByte(cpu.getRegisterHL())));
+        cpu.doInstructionCycle();
+        System.out.println("new HL = " + TestUtil.convertToHexString(cpu.getRegisterHL()) +
+                ", A = " + TestUtil.convertToHexString(cpu.getRa()));
+        assertEquals(hlVal, cpu.getRa());
+        assertEquals((short) (hl - 1), cpu.getRegisterHL());
+    }
 }
