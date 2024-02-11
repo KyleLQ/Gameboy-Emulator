@@ -113,6 +113,24 @@ public class ALUExecution {
     }
 
     /**
+     * corresponds to ALU A,u8 instruction.
+     */
+    public static void executeALU_A_u8(byte instruction, CPU cpu) {
+
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+        byte u8 = cpu.getMemory().getByte(pc);
+        cpu.setProgramCounter(pc);
+
+        BiConsumer<Byte, CPU> ALUFunction = INSTRUCTION_TO_ALU_A_R8_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+
+        ALUFunction.accept(u8, cpu);
+    }
+
+    /**
      * corresponds to the ADD HL, r16 instruction
      */
     public static void executeADD_HL_r16(byte instruction, CPU cpu) {

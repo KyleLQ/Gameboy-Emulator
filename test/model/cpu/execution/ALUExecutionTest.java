@@ -170,6 +170,27 @@ public class ALUExecutionTest {
     }
 
     @Test
+    public void testALU_A_u8() {
+        cpu.setRa((byte) 2);
+        short startAddress = (short) 0xC100;
+        byte u8 = (byte) 4;
+        byte instruction = (byte) 0b11000110;
+        cpu.setProgramCounter(startAddress);
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(u8, (short) (startAddress + 1));
+        System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()) + " + " +
+                TestUtil.convertByteToUnsignedString(u8) + " = ");
+        cpu.doInstructionCycle();
+        System.out.println(TestUtil.convertByteToUnsignedString(cpu.getRa()));
+        assertEquals((byte) 6, cpu.getRa());
+        assertEquals((short) 0xC102, cpu.getProgramCounter());
+        assertEquals(0, cpu.getZeroFlag());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getCarryFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+    }
+
+    @Test
     public void testADD_HL_r16_normal() {
         cpu.setRegisterBC((short) 15);
         cpu.setRegisterHL((short) 2);
