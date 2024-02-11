@@ -147,4 +147,17 @@ public class GameBoyUtil {
     public static Short getShortFromBytes(byte lsb, byte msb) {
         return (short) (zeroExtendByte(lsb) + (zeroExtendByte(msb) << 8));
     }
+
+    /**
+     * @param lsb true if you want the least significant byte of u16
+     * @param u16 the short to get bytes from
+     * @return one of the two bytes that make up u16
+     */
+    public static byte getByteFromShort(boolean lsb, short u16) {
+        if (lsb) {
+            return (byte) u16;
+        } else {
+            return (byte) (u16 >> 8);
+        }
+    }
 }

@@ -3,6 +3,7 @@ package model.cpu;
 import model.cpu.execution.ALUExecution;
 import model.cpu.execution.BitOpExecution;
 import model.cpu.execution.ControlFlowExecution;
+import model.cpu.execution.LoadExecution;
 import model.memory.Memory;
 import util.GameBoyUtil;
 import exception.CPUException;
@@ -46,7 +47,9 @@ public class CPU {
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11000011$"),
                     ControlFlowExecution::executeJP_UNCONDITIONAL),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^110[01]{2}010$"),
-                    ControlFlowExecution::executeJP_CONDITIONAL)
+                    ControlFlowExecution::executeJP_CONDITIONAL),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00001000$"),
+                    LoadExecution::executeLD_Memory_u16_SP)
     );
 
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_CB_EXECUTION_MAP = Map.ofEntries(
