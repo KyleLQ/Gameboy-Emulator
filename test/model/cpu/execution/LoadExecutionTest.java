@@ -40,4 +40,25 @@ public class LoadExecutionTest {
         assertEquals((byte) 0x12, cpu.getMemory().getByte((short) (u16 + 1)));
         assertEquals((short) 0xC203, cpu.getProgramCounter());
     }
+
+    @Test
+    public void testExecuteLD_r16_u16() {
+        short startAddress = (short) 0xC300;
+        short u16 = (short) 0x1357;
+        byte u16_lsb = (byte) 0x57;
+        byte u16_msb = (byte) 0x13;
+        byte instruction = (byte) 0b00100001;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(u16_lsb, (short) (startAddress + 1));
+        cpu.getMemory().setByte(u16_msb, (short) (startAddress + 2));
+        cpu.setRegisterHL((short) 0);
+        cpu.setProgramCounter(startAddress);
+
+        System.out.println("Ld r16, u16: u16 = " + TestUtil.convertToHexString(u16));
+        cpu.doInstructionCycle();
+        System.out.println("register HL: " + TestUtil.convertToHexString(cpu.getRegisterHL()));
+        assertEquals(u16, cpu.getRegisterHL());
+        assertEquals((short) 0xC303, cpu.getProgramCounter());
+    }
 }

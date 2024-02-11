@@ -8,24 +8,13 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static util.GameBoyUtil.INSTRUCTION_TO_GET_R16_MAP;
+import static util.GameBoyUtil.INSTRUCTION_TO_SET_R16_MAP;
+
 /**
  * class containing methods that execute ALU operations
  */
 public class ALUExecution {
-
-    private static final List<Function<CPU, Short>> INSTRUCTION_TO_GET_R16_MAP = Arrays.asList(
-            CPU::getRegisterBC,
-            CPU::getRegisterDE,
-            CPU::getRegisterHL,
-            CPU::getStackPointer
-    );
-
-    private static final List<BiConsumer<Short, CPU>> INSTRUCTION_TO_SET_R16_MAP = Arrays.asList(
-            (Short s, CPU cpu) -> cpu.setRegisterBC(s),
-            (Short s, CPU cpu) -> cpu.setRegisterDE(s),
-            (Short s, CPU cpu) -> cpu.setRegisterHL(s),
-            (Short s, CPU cpu) -> cpu.setStackPointer(s)
-    );
 
     private static final List<BiConsumer<Byte, CPU>> INSTRUCTION_TO_ALU_A_R8_MAP = Arrays.asList(
             (Byte b, CPU cpu) -> {

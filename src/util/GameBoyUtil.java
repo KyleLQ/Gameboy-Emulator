@@ -40,6 +40,20 @@ public class GameBoyUtil {
             (Byte b, CPU cpu) -> cpu.setRa(b)
     );
 
+    public static final List<Function<CPU, Short>> INSTRUCTION_TO_GET_R16_MAP = Arrays.asList(
+            CPU::getRegisterBC,
+            CPU::getRegisterDE,
+            CPU::getRegisterHL,
+            CPU::getStackPointer
+    );
+
+    public static final List<BiConsumer<Short, CPU>> INSTRUCTION_TO_SET_R16_MAP = Arrays.asList(
+            (Short s, CPU cpu) -> cpu.setRegisterBC(s),
+            (Short s, CPU cpu) -> cpu.setRegisterDE(s),
+            (Short s, CPU cpu) -> cpu.setRegisterHL(s),
+            (Short s, CPU cpu) -> cpu.setStackPointer(s)
+    );
+
     /**
      * @param b the byte to get the bit from
      * @param pos the position of the bit in byte b, in [0,7]
