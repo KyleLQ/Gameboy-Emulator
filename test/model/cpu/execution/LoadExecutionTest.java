@@ -126,4 +126,23 @@ public class LoadExecutionTest {
         assertEquals(u8, cpu.getMemory().getByte(hl));
         assertEquals((short) 0xC002, cpu.getProgramCounter());
     }
+
+    @Test
+    public void testExecuteLD_r8_r8() {
+        // test C = A
+        byte instruction = (byte) 0b01001111;
+        short startAddress = (short) 0xC000;
+        byte a = (byte) 0x12;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.setProgramCounter(startAddress);
+        cpu.setRa(a);
+        cpu.setRc((byte) 0);
+
+        System.out.println("Ld C, A: , A = " + TestUtil.convertToHexString(cpu.getRa()));
+        cpu.doInstructionCycle();
+        System.out.println("C = " + TestUtil.convertToHexString(cpu.getRc()));
+
+        assertEquals(a, cpu.getRc());
+    }
 }

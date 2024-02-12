@@ -1,5 +1,6 @@
 package model.cpu.execution;
 
+import exception.CPUException;
 import model.cpu.CPU;
 import util.GameBoyUtil;
 
@@ -114,5 +115,31 @@ public class LoadExecution {
         ));
 
         setR8.accept(u8, cpu);
+    }
+
+    /**
+     * Executes the instruction LD r8, r8
+     * LD (HL), (HL) is not valid because its encoding overlaps with HALT
+     */
+    public static void executeLD_r8_r8(byte instruction, CPU cpu) {
+        if (instruction == (byte) 0b01110110) {
+            // todo add a call to HALT
+            throw new CPUException("todo add a call to halt");
+        }
+        Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 2),
+                GameBoyUtil.getBitFromPosInByte(instruction, 1),
+                GameBoyUtil.getBitFromPosInByte(instruction, 0)
+        ));
+
+        byte r8 = getR8.apply(cpu);
+
+        BiConsumer<Byte, CPU> setR8 = GameBoyUtil.INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                GameBoyUtil.getBitFromPosInByte(instruction, 3)
+        ));
+
+        setR8.accept(r8, cpu);
     }
 }
