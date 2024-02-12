@@ -30,7 +30,7 @@ public class LoadExecution {
     /**
      * executes the instruction LD (u16), SP.
      * Loads data from the stack pointer into the address specified by
-     * the 16 bit intermediate u16.
+     * the 16 bit immediate u16.
      * lsb of SP is stored in (u16), msb of sp is stored in (u16 + 1)
      */
     public static void executeLD_Memory_u16_SP(byte instruction, CPU cpu) {
@@ -51,7 +51,7 @@ public class LoadExecution {
 
     /**
      * executes the instruction LD r16, u16.
-     * loads the intermediate value u16 into the register r16
+     * loads the immediate value u16 into the register r16
      */
     public static void executeLD_r16_u16(byte instruction, CPU cpu) {
         short pc = cpu.getProgramCounter();
@@ -95,5 +95,24 @@ public class LoadExecution {
         short address = getR16.apply(cpu);
         byte value = cpu.getMemory().getByte(address);
         cpu.setRa(value);
+    }
+
+    /**
+     * Executes the instruction LD r8, u8.
+     * Loads the immediate 8 bit value u8 into the register r8
+     */
+    public static void executeLD_r8_u8(byte instruction, CPU cpu) {
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+        byte u8 = cpu.getMemory().getByte(pc);
+        cpu.setProgramCounter(pc);
+
+        BiConsumer<Byte, CPU> setR8 = GameBoyUtil.INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
+                GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                GameBoyUtil.getBitFromPosInByte(instruction, 3)
+        ));
+
+        setR8.accept(u8, cpu);
     }
 }

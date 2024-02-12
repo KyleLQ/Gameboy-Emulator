@@ -14,7 +14,6 @@ public class GameBoyUtil {
     public static final int UNSIGNED_BYTE_MAX = 255;
     public static final int UNSIGNED_NIBBLE_MAX = 15;
 
-    // return (byte) 0 is just a placeholder for (HL) todo
     public static final List<Function<CPU, Byte>> INSTRUCTION_TO_GET_R8_MAP = Arrays.asList(
             CPU::getRb,
             CPU::getRc,
@@ -23,12 +22,12 @@ public class GameBoyUtil {
             CPU::getRh,
             CPU::getRl,
             (CPU cpu) -> {
-                return (byte) 0;
+                short hl = cpu.getRegisterHL();
+                return cpu.getMemory().getByte(hl);
             },
             CPU::getRa
     );
 
-    // the empty method is a placeholder for (HL) todo
     public static final List<BiConsumer<Byte, CPU>> INSTRUCTION_TO_SET_R8_MAP = Arrays.asList(
             (Byte b, CPU cpu) -> cpu.setRb(b),
             (Byte b, CPU cpu) -> cpu.setRc(b),
@@ -36,7 +35,10 @@ public class GameBoyUtil {
             (Byte b, CPU cpu) -> cpu.setRe(b),
             (Byte b, CPU cpu) -> cpu.setRh(b),
             (Byte b, CPU cpu) -> cpu.setRl(b),
-            (Byte b, CPU cpu) -> {},
+            (Byte b, CPU cpu) -> {
+                short hl = cpu.getRegisterHL();
+                cpu.getMemory().setByte(b, hl);
+            },
             (Byte b, CPU cpu) -> cpu.setRa(b)
     );
 

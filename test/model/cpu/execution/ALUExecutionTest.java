@@ -14,7 +14,6 @@ public class ALUExecutionTest {
         cpu = new CPU();
     }
 
-    // todo doesn't test (HL) register
     @Test
     public void testALU_A_r8_ADD() {
         cpu.setRa((byte) 2);
