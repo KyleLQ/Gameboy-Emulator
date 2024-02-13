@@ -142,4 +142,59 @@ public class LoadExecution {
 
         setR8.accept(r8, cpu);
     }
+
+    /**
+     * Executes the instruction LD (0xFF00 + u8), A.
+     * The memory address is given by the msb 0xFF and the lsb u8.
+     * The value in register A is written to the memory address.
+     */
+    public static void executeLD_Memory_FF00_plus_u8_A(byte instruction, CPU cpu) {
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+        byte u8 = cpu.getMemory().getByte(pc);
+        cpu.setProgramCounter(pc);
+
+        short address = GameBoyUtil.getShortFromBytes(u8, (byte) 0xFF);
+        byte a = cpu.getRa();
+        cpu.getMemory().setByte(a, address);
+    }
+
+    /**
+     * Executes the instruction LD A, (0xFF00 + u8)
+     * The value in the memory address given by msb = 0xFF and lsb = u8 is read to register A
+     */
+    public static void executeLD_A_Memory_FF00_plus_u8(byte instruction, CPU cpu) {
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+        byte u8 = cpu.getMemory().getByte(pc);
+        cpu.setProgramCounter(pc);
+
+        short address = GameBoyUtil.getShortFromBytes(u8, (byte) 0xFF);
+        byte memoryRead = cpu.getMemory().getByte(address);
+        cpu.setRa(memoryRead);
+    }
+
+    /**
+     * Executes the instruction LD (0xFF00+C), A.
+     * The memory address is given by the msb 0xFF and the lsb register C value.
+     * The value in register A is written to the memory address.
+     */
+    public static void executeLD_Memory_FF00_plus_C_A(byte instruction, CPU cpu) {
+        byte c = cpu.getRc();
+        short address = GameBoyUtil.getShortFromBytes(c, (byte) 0xFF);
+        byte a = cpu.getRa();
+        cpu.getMemory().setByte(a, address);
+    }
+
+    /**
+     * Executes the instruction LD A, (0xFF00 + C)
+     * The value in the memory address with msb = 0xFF and lsb = reg C value
+     * is read to register A.
+     */
+    public static void executeLD_A_Memory_FF00_plus_C(byte instruction, CPU cpu) {
+        byte c = cpu.getRc();
+        short address = GameBoyUtil.getShortFromBytes(c, (byte) 0xFF);
+        byte memoryRead = cpu.getMemory().getByte(address);
+        cpu.setRa(memoryRead);
+    }
 }

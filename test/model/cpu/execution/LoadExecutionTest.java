@@ -4,6 +4,7 @@ import model.cpu.CPU;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import testutil.TestUtil;
+import util.GameBoyUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -144,5 +145,82 @@ public class LoadExecutionTest {
         System.out.println("C = " + TestUtil.convertToHexString(cpu.getRc()));
 
         assertEquals(a, cpu.getRc());
+    }
+
+    @Test
+    public void testExecuteLD_Memory_FF00_plus_u8_A() {
+        byte instruction = (byte) 0b11100000;
+        short startAddress = (short) 0xC000;
+        byte u8 = (byte) 0x11;
+        byte a = (byte) 0x34;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(u8, (short) (startAddress + 1));
+        cpu.setProgramCounter(startAddress);
+        cpu.setRa(a);
+
+        System.out.println("Ld (FF00 + u8), A, A = " + TestUtil.convertToHexString(cpu.getRa()) +
+                ", u8 = " + TestUtil.convertToHexString(u8));
+        cpu.doInstructionCycle();
+        System.out.println("(FF11) = " + TestUtil.convertToHexString(cpu.getMemory().getByte((short) 0xFF11)));
+        assertEquals(a, cpu.getMemory().getByte((short) 0xFF11));
+        assertEquals((short) 0xC002, cpu.getProgramCounter());
+    }
+
+    @Test
+    public void testExecuteLD_A_Memory_FF00_plus_u8() {
+        byte instruction = (byte) 0b11110000;
+        short startAddress = (short) 0xC000;
+        byte u8 = (byte) 0x11;
+        byte memoryVal = (byte) 0x34;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(u8, (short) (startAddress + 1));
+        cpu.setProgramCounter(startAddress);
+        cpu.getMemory().setByte(memoryVal, GameBoyUtil.getShortFromBytes(u8, (byte) 0xFF));
+
+        System.out.println("Ld A, (FF00 + u8), (FF00 + u8) = " + TestUtil.convertToHexString(memoryVal));
+        cpu.doInstructionCycle();
+        System.out.println("A = " + TestUtil.convertToHexString(cpu.getRa()));
+        assertEquals(memoryVal, cpu.getRa());
+        assertEquals((short) 0xC002, cpu.getProgramCounter());
+    }
+
+    @Test
+    public void testExecuteLD_Memory_FF00_plus_C_A() {
+        byte instruction = (byte) 0b11100010;
+        short startAddress = (short) 0xC000;
+        byte c = (byte) 0x11;
+        byte a = (byte) 0x34;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.setProgramCounter(startAddress);
+        cpu.setRa(a);
+        cpu.setRc(c);
+
+        System.out.println("Ld (FF00 + C), A, A = " + TestUtil.convertToHexString(cpu.getRa()) +
+                ", C = " + TestUtil.convertToHexString(cpu.getRc()));
+        cpu.doInstructionCycle();
+        System.out.println("(FF11) = " + TestUtil.convertToHexString(cpu.getMemory().getByte((short) 0xFF11)));
+        assertEquals(a, cpu.getMemory().getByte((short) 0xFF11));
+    }
+
+    @Test
+    public void testExecuteLD_A_Memory_FF00_plus_C() {
+        byte instruction = (byte) 0b11110010;
+        short startAddress = (short) 0xC000;
+        byte c = (byte) 0x11;
+        byte memoryVal = (byte) 0x34;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.setProgramCounter(startAddress);
+        cpu.getMemory().setByte(memoryVal, GameBoyUtil.getShortFromBytes(c, (byte) 0xFF));
+        cpu.setRc(c);
+
+        System.out.println("Ld A, (FF00 + C), (FF00 + C) = " + TestUtil.convertToHexString(memoryVal) +
+                ", C = " + TestUtil.convertToHexString(cpu.getRc()));
+        cpu.doInstructionCycle();
+        System.out.println("A = " + TestUtil.convertToHexString(cpu.getRa()));
+        assertEquals(memoryVal, cpu.getRa());
     }
 }
