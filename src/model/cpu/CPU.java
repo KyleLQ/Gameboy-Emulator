@@ -40,6 +40,8 @@ public class CPU {
                     ALUExecution::executeDEC_r16),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{3}111$"),
                     BitOpExecution::executeACCUMULATOR_FLAG_OPS),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11001011$"),
+                    BitOpExecution::executeCB_PREFIX),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00011000$"),
                     ControlFlowExecution::executeJR_UNCONDITIONAL),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^001[01]{2}000$"),
@@ -127,7 +129,6 @@ public class CPU {
         for (Map.Entry<Pattern, BiConsumer<Byte, CPU>> mapEntry : REGEX_TO_CB_EXECUTION_MAP.entrySet()) {
             if (mapEntry.getKey().matcher(binaryString).find()) {
                 mapEntry.getValue().accept(instruction, this);
-                pc++;
                 return;
             }
         }

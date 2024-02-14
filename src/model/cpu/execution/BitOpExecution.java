@@ -302,4 +302,17 @@ public class BitOpExecution {
                 GameBoyUtil.getBitFromPosInByte(instruction, 3)));
         accumulatorFlagFunction.accept(cpu);
     }
+
+    /**
+     * This is the CB prefix instruction. This indicates that the next byte is
+     * an instruction that should be decoded from the CB prefix table instead.
+     */
+    public static void executeCB_PREFIX(byte instruction, CPU cpu) {
+        // todo this instruction is atomic, no interrupts can happen here
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+        byte nextInstruction = cpu.getMemory().getByte(pc);
+        cpu.setProgramCounter(pc);
+        cpu.decodeExecuteCBInstruction(nextInstruction);
+    }
 }

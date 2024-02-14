@@ -458,4 +458,30 @@ public class BitOpExecutionTest {
         assertEquals(0, cpu.getHalfCarryFlag());
         assertEquals(0, cpu.getCarryFlag());
     }
+
+    @Test
+    public void testCB_PREFIX() {
+        byte instruction = (byte) 0b11001011;
+        byte nextInstruction = (byte) 0b11010111;
+        short startAddress = (short) 0xC000;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(nextInstruction, (short) (startAddress + 1));
+        cpu.setProgramCounter(startAddress);
+
+        cpu.setZeroFlag(1);
+        cpu.setSubtractionFlag(1);
+        cpu.setHalfCarryFlag(1);
+        cpu.setCarryFlag(1);
+        cpu.setRa((byte) 0b11110000);
+        System.out.println("Testing CB prefix: Bit at pos 2 of " + TestUtil.convertByteToBinaryString(cpu.getRa()) + " is set to one: ");
+        cpu.doInstructionCycle();
+        System.out.println(TestUtil.convertByteToBinaryString(cpu.getRa()));
+        assertEquals(cpu.getRa(), (byte) 0b11110100);
+        assertEquals(1, cpu.getZeroFlag()); // flags all should not be modified
+        assertEquals(1, cpu.getSubtractionFlag());
+        assertEquals(1, cpu.getHalfCarryFlag());
+        assertEquals(1, cpu.getCarryFlag());
+        assertEquals((short) 0xC002, cpu.getProgramCounter());
+    }
 }
