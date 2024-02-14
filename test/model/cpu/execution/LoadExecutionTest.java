@@ -223,4 +223,50 @@ public class LoadExecutionTest {
         System.out.println("A = " + TestUtil.convertToHexString(cpu.getRa()));
         assertEquals(memoryVal, cpu.getRa());
     }
+
+    @Test
+    public void testExecuteLD_Memory_u16_A() {
+        byte instruction = (byte) 0b11101010;
+        short startAddress = (short) 0xD000;
+        byte a = (byte) 0x67;
+        byte u16_lsb = (byte) 0x34;
+        byte u16_msb = (byte) 0x12;
+        short u16 = (short) 0x1234;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(u16_lsb, (short) (startAddress + 1));
+        cpu.getMemory().setByte(u16_msb, (short) (startAddress + 2));
+        cpu.setProgramCounter(startAddress);
+        cpu.setRa(a);
+
+        System.out.println("Ld (u16), A, A = " + TestUtil.convertToHexString(a) +
+                ", u16 = " + TestUtil.convertToHexString(u16));
+        cpu.doInstructionCycle();
+        System.out.println("(0x1234) = " + TestUtil.convertToHexString(cpu.getMemory().getByte(u16)));
+        assertEquals(a, cpu.getMemory().getByte(u16));
+        assertEquals((short) 0xD003, cpu.getProgramCounter());
+    }
+
+    @Test
+    public void testExecuteLD_A_Memory_u16() {
+        byte instruction = (byte) 0b11111010;
+        short startAddress = (short) 0xD000;
+        byte memoryVal = (byte) 0x67;
+        byte u16_lsb = (byte) 0x34;
+        byte u16_msb = (byte) 0x12;
+        short u16 = (short) 0x1234;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(u16_lsb, (short) (startAddress + 1));
+        cpu.getMemory().setByte(u16_msb, (short) (startAddress + 2));
+        cpu.getMemory().setByte(memoryVal, u16);
+        cpu.setProgramCounter(startAddress);
+
+        System.out.println("Ld (u16), A, u16 = " + TestUtil.convertToHexString(u16) +
+                ", (u16) = " + TestUtil.convertToHexString(cpu.getMemory().getByte(u16)));
+        cpu.doInstructionCycle();
+        System.out.println("A = " + TestUtil.convertToHexString(cpu.getRa()));
+        assertEquals(memoryVal, cpu.getRa());
+        assertEquals((short) 0xD003, cpu.getProgramCounter());
+    }
 }

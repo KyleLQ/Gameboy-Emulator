@@ -197,4 +197,36 @@ public class LoadExecution {
         byte memoryRead = cpu.getMemory().getByte(address);
         cpu.setRa(memoryRead);
     }
+
+    /**
+     * Executes the instruction LD (u16), A
+     */
+    public static void executeLD_Memory_u16_A(byte instruction, CPU cpu) {
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+        byte u16_lsb = cpu.getMemory().getByte(pc);
+        pc = (short) (pc + 1);
+        byte u16_msb = cpu.getMemory().getByte(pc);
+        cpu.setProgramCounter(pc);
+
+        short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
+        byte a = cpu.getRa();
+        cpu.getMemory().setByte(a, u16);
+    }
+
+    /**
+     * Executes the instruction LD A, (u16)
+     */
+    public static void executeLD_A_Memory_u16(byte instruction, CPU cpu) {
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+        byte u16_lsb = cpu.getMemory().getByte(pc);
+        pc = (short) (pc + 1);
+        byte u16_msb = cpu.getMemory().getByte(pc);
+        cpu.setProgramCounter(pc);
+
+        short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
+        byte memoryVal = cpu.getMemory().getByte(u16);
+        cpu.setRa(memoryVal);
+    }
 }
