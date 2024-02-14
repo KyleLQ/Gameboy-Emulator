@@ -338,4 +338,144 @@ public class ALUExecutionTest {
         assertEquals(0, cpu.getHalfCarryFlag());
         assertEquals(0, cpu.getCarryFlag());
     }
+
+    @Test
+    public void testExecuteADD_SP_i8_negative() {
+        byte instruction = (byte) 0b11101000;
+        short startAddress = (short) 0xC000;
+        byte i8 = (byte) -2;
+        short sp = (short) 1234;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(i8, (short) (startAddress + 1));
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+        cpu.setZeroFlag(1);
+        cpu.setSubtractionFlag(1);
+        cpu.setCarryFlag(1);
+        cpu.setHalfCarryFlag(1);
+
+        System.out.println("ADD SP, i8, SP = " + TestUtil.convertShortToUnsignedString(cpu.getStackPointer()) +
+                ", i8 = " + i8);
+        cpu.doInstructionCycle();
+        System.out.println("SP = " + TestUtil.convertShortToUnsignedString(cpu.getStackPointer()));
+        assertEquals((short) 1232, cpu.getStackPointer());
+        assertEquals((short) 0xC002, cpu.getProgramCounter());
+        assertEquals(0, cpu.getZeroFlag());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+        assertEquals(0, cpu.getCarryFlag());
+    }
+
+    @Test
+    public void testExecuteADD_SP_i8_positive_no_carry() {
+        byte instruction = (byte) 0b11101000;
+        short startAddress = (short) 0xC000;
+        byte i8 = (byte) 0x2;
+        short sp = (short) 0x1234;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(i8, (short) (startAddress + 1));
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+        cpu.setZeroFlag(1);
+        cpu.setSubtractionFlag(1);
+        cpu.setCarryFlag(1);
+        cpu.setHalfCarryFlag(1);
+
+        System.out.println("ADD SP, i8, SP = " + TestUtil.convertToHexString(cpu.getStackPointer()) +
+                ", i8 = " + TestUtil.convertToHexString(i8));
+        cpu.doInstructionCycle();
+        System.out.println("SP = " + TestUtil.convertToHexString(cpu.getStackPointer()));
+        assertEquals((short) 0x1236, cpu.getStackPointer());
+        assertEquals((short) 0xC002, cpu.getProgramCounter());
+        assertEquals(0, cpu.getZeroFlag());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+        assertEquals(0, cpu.getCarryFlag());
+    }
+
+    @Test
+    public void testExecuteADD_SP_i8_positive_carry() {
+        byte instruction = (byte) 0b11101000;
+        short startAddress = (short) 0xC000;
+        byte i8 = (byte) 0x40;
+        short sp = (short) 0x99C0;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(i8, (short) (startAddress + 1));
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+        cpu.setZeroFlag(1);
+        cpu.setSubtractionFlag(1);
+        cpu.setCarryFlag(0);
+        cpu.setHalfCarryFlag(1);
+
+        System.out.println("ADD SP, i8, SP = " + TestUtil.convertToHexString(cpu.getStackPointer()) +
+                ", i8 = " + TestUtil.convertToHexString(i8));
+        cpu.doInstructionCycle();
+        System.out.println("SP = " + TestUtil.convertToHexString(cpu.getStackPointer()));
+        assertEquals((short) 0x9A00, cpu.getStackPointer());
+        assertEquals((short) 0xC002, cpu.getProgramCounter());
+        assertEquals(0, cpu.getZeroFlag());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+        assertEquals(1, cpu.getCarryFlag());
+    }
+
+    @Test
+    public void testExecuteADD_SP_i8_positive_half_carry() {
+        byte instruction = (byte) 0b11101000;
+        short startAddress = (short) 0xC000;
+        byte i8 = (byte) 0x08;
+        short sp = (short) 0x1108;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(i8, (short) (startAddress + 1));
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+        cpu.setZeroFlag(1);
+        cpu.setSubtractionFlag(1);
+        cpu.setCarryFlag(1);
+        cpu.setHalfCarryFlag(0);
+
+        System.out.println("ADD SP, i8, SP = " + TestUtil.convertToHexString(cpu.getStackPointer()) +
+                ", i8 = " + TestUtil.convertToHexString(i8));
+        cpu.doInstructionCycle();
+        System.out.println("SP = " + TestUtil.convertToHexString(cpu.getStackPointer()));
+        assertEquals((short) 0x1110, cpu.getStackPointer());
+        assertEquals((short) 0xC002, cpu.getProgramCounter());
+        assertEquals(0, cpu.getZeroFlag());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(1, cpu.getHalfCarryFlag());
+        assertEquals(0, cpu.getCarryFlag());
+    }
+
+    @Test
+    public void testExecuteLD_HL_SP_plus_i8_positive_no_carry() {
+        byte instruction = (byte) 0b11111000;
+        short startAddress = (short) 0xC000;
+        byte i8 = (byte) 0x2;
+        short sp = (short) 0x1234;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(i8, (short) (startAddress + 1));
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+        cpu.setZeroFlag(1);
+        cpu.setSubtractionFlag(1);
+        cpu.setCarryFlag(1);
+        cpu.setHalfCarryFlag(1);
+
+        System.out.println("LD HL, SP + i8, SP = " + TestUtil.convertToHexString(cpu.getStackPointer()) +
+                ", i8 = " + TestUtil.convertToHexString(i8));
+        cpu.doInstructionCycle();
+        System.out.println("HL = " + TestUtil.convertToHexString(cpu.getRegisterHL()));
+        assertEquals((short) 0x1236, cpu.getRegisterHL());
+        assertEquals((short) 0xC002, cpu.getProgramCounter());
+        assertEquals(0, cpu.getZeroFlag());
+        assertEquals(0, cpu.getSubtractionFlag());
+        assertEquals(0, cpu.getHalfCarryFlag());
+        assertEquals(0, cpu.getCarryFlag());
+    }
 }
