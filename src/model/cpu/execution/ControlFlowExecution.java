@@ -5,6 +5,7 @@ import util.GameBoyUtil;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ControlFlowExecution {
@@ -14,6 +15,30 @@ public class ControlFlowExecution {
             (CPU cpu) -> cpu.getZeroFlag(),
             (CPU cpu) -> (cpu.getCarryFlag() == 1) ? 0 : 1,
             (CPU cpu) -> cpu.getCarryFlag()
+    );
+
+    private static final List<Consumer<CPU>> INSTRUCTION_TO_RET_HL_MAP = Arrays.asList(
+            (CPU cpu) -> {
+                short sp = cpu.getStackPointer();
+                byte pc_lsb = cpu.getMemory().getByte(sp);
+                sp = (short) (sp + 1);
+                byte pc_msb = cpu.getMemory().getByte(sp);
+                sp = (short) (sp + 1);
+                cpu.setStackPointer(sp);
+                short pc = GameBoyUtil.getShortFromBytes(pc_lsb, pc_msb);
+                cpu.setProgramCounter((short) (pc - 1)); // account for pc++ at end of cycle
+            },
+            (CPU cpu) -> {
+                // todo
+            },
+            (CPU cpu) -> {
+                short hl = cpu.getRegisterHL();
+                cpu.setProgramCounter((short) (hl-1)); // account for pc++ at end of cycle
+            },
+            (CPU cpu) -> {
+                short hl = cpu.getRegisterHL();
+                cpu.setStackPointer(hl);
+            }
     );
 
     /**
@@ -136,5 +161,16 @@ public class ControlFlowExecution {
             // while pc only increments by one at end of every fetch decode execute cycle
             cpu.setProgramCounter((short) (cpu.getProgramCounter() + 2));
         }
+    }
+
+    /**
+     * Executes the instructions RET, RETI, JP HL, and LD SP, HL
+     */
+    public static void executeRET_HL_OPS(byte instruction, CPU cpu) {
+        Consumer<CPU> ret_hl_op = INSTRUCTION_TO_RET_HL_MAP.get(
+                GameBoyUtil.get2BitValue(
+                        GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                        GameBoyUtil.getBitFromPosInByte(instruction, 4)));
+        ret_hl_op.accept(cpu);
     }
 }
