@@ -60,6 +60,8 @@ public class CPU {
                     ControlFlowExecution::executeCALL_CONDITIONAL),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11[01]{2}1001$"),
                     ControlFlowExecution::executeRET_HL_OPS),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^110[01]{2}000$"),
+                    ControlFlowExecution::executeRET_CONDITIONAL),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00001000$"),
                     LoadExecution::executeLD_Memory_u16_SP),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00[01]{2}0001$"),

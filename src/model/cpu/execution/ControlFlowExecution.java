@@ -173,4 +173,18 @@ public class ControlFlowExecution {
                         GameBoyUtil.getBitFromPosInByte(instruction, 4)));
         ret_hl_op.accept(cpu);
     }
+
+    /**
+     * Executes the instruction RET conditional
+     */
+    public static void executeRET_CONDITIONAL(byte instruction, CPU cpu) {
+        Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
+                GameBoyUtil.get2BitValue(
+                        GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                        GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+
+        if (conditionFunction.apply(cpu) == 1) {
+            INSTRUCTION_TO_RET_HL_MAP.get(0).accept(cpu);
+        }
+    }
 }

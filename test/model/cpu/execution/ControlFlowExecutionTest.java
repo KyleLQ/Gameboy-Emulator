@@ -248,4 +248,24 @@ public class ControlFlowExecutionTest {
         System.out.println("SP = " + TestUtil.convertToHexString(cpu.getStackPointer()));
         assertEquals(hl, cpu.getStackPointer());
     }
+
+    @Test
+    public void testExecuteRET_CONDITIONAL_unsuccessful() {
+        cpu.setZeroFlag(0);
+        byte instruction = (byte) 0b11001000;
+        short startAddress = (short) 0xC000;
+        short sp = (short) 0x6789;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+        System.out.println("RET CONDITIONAL, PC = " + TestUtil.convertToHexString(cpu.getProgramCounter()) +
+                ", SP = " + TestUtil.convertToHexString(cpu.getStackPointer()) +
+                ", Z = " + cpu.getZeroFlag());
+        cpu.doInstructionCycle();
+        System.out.println("PC = " + TestUtil.convertToHexString(cpu.getProgramCounter()) +
+                ", SP = " + TestUtil.convertToHexString(cpu.getStackPointer()));
+        assertEquals((short) (startAddress + 1), cpu.getProgramCounter());
+        assertEquals(sp, cpu.getStackPointer());
+    }
 }
