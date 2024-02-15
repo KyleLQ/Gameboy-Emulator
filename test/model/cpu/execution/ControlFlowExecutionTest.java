@@ -142,4 +142,55 @@ public class ControlFlowExecutionTest {
         System.out.println("pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()));
         assertEquals((short) 0xD0FF, cpu.getProgramCounter());
     }
+
+    @Test
+    public void testCALL_UNCONDITIONAL() {
+        byte instruction = (byte) 0b11001101;
+        short startAddress = (short) 0xC000;
+        byte u16_lsb = (byte) 0x89;
+        byte u16_msb = (byte) 0x67;
+        short u16 = (short) 0x6789;
+        short sp = (short) 0xD002;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(u16_lsb, (short) (startAddress + 1));
+        cpu.getMemory().setByte(u16_msb, (short) (startAddress + 2));
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+
+        System.out.println("CALL Unconditional, u16 = " + TestUtil.convertToHexString(u16) +
+                ", sp = " + TestUtil.convertToHexString(sp));
+        cpu.doInstructionCycle();
+        System.out.println("pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()) +
+                ", sp = " + TestUtil.convertToHexString(cpu.getStackPointer()) +
+                ", (sp) = " + TestUtil.convertToHexString(cpu.getMemory().getByte(cpu.getStackPointer())) +
+                ", (sp + 1) = " + TestUtil.convertToHexString(cpu.getMemory().getByte((short) (cpu.getStackPointer() + 1))));
+        assertEquals(u16, cpu.getProgramCounter());
+        assertEquals((short) (sp - 2), cpu.getStackPointer());
+        assertEquals((byte) 0x03, cpu.getMemory().getByte(cpu.getStackPointer()));
+        assertEquals((byte) 0xC0, cpu.getMemory().getByte((short) (cpu.getStackPointer() + 1)));
+    }
+
+    @Test
+    public void testCALL_CONDITIONAL() {
+        cpu.setZeroFlag(0);
+        byte instruction = (byte) 0b11001100;
+        short startAddress = (short) 0xC000;
+        byte u16_lsb = (byte) 0x89;
+        byte u16_msb = (byte) 0x67;
+        short sp = (short) 0xD002;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.getMemory().setByte(u16_lsb, (short) (startAddress + 1));
+        cpu.getMemory().setByte(u16_msb, (short) (startAddress + 2));
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+
+        System.out.println("CALL conditional, pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()) +
+                ", Z = " + cpu.getZeroFlag());
+        cpu.doInstructionCycle();
+        System.out.println("pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()));
+        assertEquals((short) (startAddress + 3), cpu.getProgramCounter());
+        assertEquals(sp, cpu.getStackPointer());
+    }
 }

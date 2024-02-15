@@ -89,4 +89,52 @@ public class ControlFlowExecution {
             cpu.setProgramCounter((short) (cpu.getProgramCounter() + 2));
         }
     }
+
+    /**
+     * Executes the unconditional CALL instruction.
+     * Jumps to the 16 bit immediate and pushes the address of the instruction after the
+     * CALL on the stack.
+     */
+    public static void executeCALL_UNCONDITIONAL(byte instruction, CPU cpu) {
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+        byte u16_lsb = cpu.getMemory().getByte(pc);
+        pc = (short) (pc + 1);
+        byte u16_msb = cpu.getMemory().getByte(pc);
+        pc = (short) (pc + 1);
+
+        byte pc_lsb = GameBoyUtil.getByteFromShort(true, pc);
+        byte pc_msb = GameBoyUtil.getByteFromShort(false, pc);
+
+        short sp = cpu.getStackPointer();
+        sp = (short) (sp - 1);
+        cpu.getMemory().setByte(pc_msb, sp);
+        sp = (short) (sp - 1);
+        cpu.getMemory().setByte(pc_lsb, sp);
+        cpu.setStackPointer(sp);
+
+        short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
+        cpu.setProgramCounter(u16);
+        cpu.setProgramCounter((short) (cpu.getProgramCounter() - 1)); // account for pc++ at the end of the cycle
+    }
+
+    /**
+     * Executes the conditional CALL instruction.
+     * Jumps to the 16 bit immediate and pushes the address of the instruction after the
+     * CALL on the stack, if condition is met. Either way, the 16 bit immediate is read.
+     */
+    public static void executeCALL_CONDITIONAL(byte instruction, CPU cpu) {
+        Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
+                GameBoyUtil.get2BitValue(
+                        GameBoyUtil.getBitFromPosInByte(instruction, 4),
+                        GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+
+        if (conditionFunction.apply(cpu) == 1) {
+            executeCALL_UNCONDITIONAL(instruction, cpu);
+        } else {
+            // the address after the instruction is two extra bytes,
+            // while pc only increments by one at end of every fetch decode execute cycle
+            cpu.setProgramCounter((short) (cpu.getProgramCounter() + 2));
+        }
+    }
 }
