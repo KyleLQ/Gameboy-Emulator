@@ -77,7 +77,11 @@ public class CPU {
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11101010$"),
                     LoadExecution::executeLD_Memory_u16_A),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11111010$"),
-                    LoadExecution::executeLD_A_Memory_u16)
+                    LoadExecution::executeLD_A_Memory_u16),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11[01]{2}0101$"),
+                    LoadExecution::executePUSH_r16),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11[01]{2}0001$"),
+                    LoadExecution::executePOP_r16)
     );
 
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_CB_EXECUTION_MAP = Map.ofEntries(

@@ -28,6 +28,20 @@ public class LoadExecution {
             }
     );
 
+    private static final List<Function<CPU, Short>> INSTRUCTION_TO_GET_R16_AF_MAP = Arrays.asList(
+            CPU::getRegisterBC,
+            CPU::getRegisterDE,
+            CPU::getRegisterHL,
+            CPU::getRegisterAF
+    );
+
+    private static final List<BiConsumer<Short, CPU>> INSTRUCTION_TO_SET_R16_AF_MAP = Arrays.asList(
+            (Short s, CPU cpu) -> cpu.setRegisterBC(s),
+            (Short s, CPU cpu) -> cpu.setRegisterDE(s),
+            (Short s, CPU cpu) -> cpu.setRegisterHL(s),
+            (Short s, CPU cpu) -> cpu.setRegisterAF(s)
+    );
+
     /**
      * executes the instruction LD (u16), SP.
      * Loads data from the stack pointer into the address specified by
@@ -228,5 +242,49 @@ public class LoadExecution {
         short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
         byte memoryVal = cpu.getMemory().getByte(u16);
         cpu.setRa(memoryVal);
+    }
+
+    /**
+     * Executes the instruction PUSH r16.
+     * The stack pointer should point to the byte at the top of the stack.
+     * (NOT the first "empty" byte above the stack)
+     */
+    public static void executePUSH_r16(byte instruction, CPU cpu) {
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_AF_MAP.get(
+                GameBoyUtil.get2BitValue(
+                        GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                        GameBoyUtil.getBitFromPosInByte(instruction, 4)));
+
+        short r16 = getR16.apply(cpu);
+        byte r16_lsb = GameBoyUtil.getByteFromShort(true, r16);
+        byte r16_msb = GameBoyUtil.getByteFromShort(false, r16);
+
+        short sp = cpu.getStackPointer();
+        sp = (short) (sp - 1);
+        cpu.getMemory().setByte(r16_msb, sp);
+        sp = (short) (sp - 1);
+        cpu.getMemory().setByte(r16_lsb, sp);
+        cpu.setStackPointer(sp);
+    }
+
+    /**
+     * Executes the instruction POP r16.
+     * The stack pointer should point to the byte at the top of the stack.
+     * (NOT the first "empty" byte above the stack)
+     */
+    public static void executePOP_r16(byte instruction, CPU cpu) {
+        short sp = cpu.getStackPointer();
+        byte r16_lsb = cpu.getMemory().getByte(sp);
+        sp = (short) (sp + 1);
+        byte r16_msb = cpu.getMemory().getByte(sp);
+        sp = (short) (sp + 1);
+        cpu.setStackPointer(sp);
+        short r16 = GameBoyUtil.getShortFromBytes(r16_lsb, r16_msb);
+
+        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_AF_MAP.get(
+                GameBoyUtil.get2BitValue(
+                        GameBoyUtil.getBitFromPosInByte(instruction, 5),
+                        GameBoyUtil.getBitFromPosInByte(instruction, 4)));
+        setR16.accept(r16, cpu);
     }
 }
