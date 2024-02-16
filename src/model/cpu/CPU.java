@@ -1,9 +1,6 @@
 package model.cpu;
 
-import model.cpu.execution.ALUExecution;
-import model.cpu.execution.BitOpExecution;
-import model.cpu.execution.ControlFlowExecution;
-import model.cpu.execution.LoadExecution;
+import model.cpu.execution.*;
 import model.memory.Memory;
 import util.GameBoyUtil;
 import exception.CPUException;
@@ -58,6 +55,8 @@ public class CPU {
                     ControlFlowExecution::executeCALL_UNCONDITIONAL),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^110[01]{2}100$"),
                     ControlFlowExecution::executeCALL_CONDITIONAL),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11[01]{3}111$"),
+                    ControlFlowExecution::executeRST),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11[01]{2}1001$"),
                     ControlFlowExecution::executeRET_HL_OPS),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^110[01]{2}000$"),
@@ -89,7 +88,13 @@ public class CPU {
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11[01]{2}0101$"),
                     LoadExecution::executePUSH_r16),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11[01]{2}0001$"),
-                    LoadExecution::executePOP_r16)
+                    LoadExecution::executePOP_r16),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00000000$"),
+                    MiscExecution::executeNOP),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11110011$"),
+                    MiscExecution::executeDI),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11111011$"),
+                    MiscExecution::executeEI)
     );
 
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_CB_EXECUTION_MAP = Map.ofEntries(

@@ -195,6 +195,30 @@ public class ControlFlowExecutionTest {
     }
 
     @Test
+    public void testRST() {
+        byte instruction = (byte) 0b11111111;
+        short jumpAddress = (short) 0x0038;
+        short startAddress = (short) 0xC000;
+        short sp = (short) 0xD002;
+
+        cpu.getMemory().setByte(instruction, startAddress);
+        cpu.setProgramCounter(startAddress);
+        cpu.setStackPointer(sp);
+
+        System.out.println("RST, address to jump to = " + TestUtil.convertToHexString(jumpAddress) +
+                ", sp = " + TestUtil.convertToHexString(sp));
+        cpu.doInstructionCycle();
+        System.out.println("pc = " + TestUtil.convertToHexString(cpu.getProgramCounter()) +
+                ", sp = " + TestUtil.convertToHexString(cpu.getStackPointer()) +
+                ", (sp) = " + TestUtil.convertToHexString(cpu.getMemory().getByte(cpu.getStackPointer())) +
+                ", (sp + 1) = " + TestUtil.convertToHexString(cpu.getMemory().getByte((short) (cpu.getStackPointer() + 1))));
+        assertEquals(jumpAddress, cpu.getProgramCounter());
+        assertEquals((short) (sp - 2), cpu.getStackPointer());
+        assertEquals((byte) 0x01, cpu.getMemory().getByte(cpu.getStackPointer()));
+        assertEquals((byte) 0xC0, cpu.getMemory().getByte((short) (cpu.getStackPointer() + 1)));
+    }
+
+    @Test
     public void testExecuteRET_UNCONDITIONAL() {
         byte instruction = (byte) 0b11001001;
         short startAddress = (short) 0xC000;

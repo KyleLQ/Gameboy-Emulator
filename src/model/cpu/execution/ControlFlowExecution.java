@@ -164,6 +164,39 @@ public class ControlFlowExecution {
     }
 
     /**
+     * Executes the instruction RST.
+     * Equivalent to CALL 00EXP000, where EXP is represented by
+     * bits 5,4,3 in the instruction.
+     */
+    public static void executeRST(byte instruction, CPU cpu) {
+        int bit5 = GameBoyUtil.getBitFromPosInByte(instruction, 5);
+        int bit4 = GameBoyUtil.getBitFromPosInByte(instruction, 4);
+        int bit3 = GameBoyUtil.getBitFromPosInByte(instruction, 3);
+
+        byte exp = (byte) 0b00000000;
+        exp = GameBoyUtil.modifyBitOnPosInByte(exp, 5, bit5);
+        exp = GameBoyUtil.modifyBitOnPosInByte(exp, 4, bit4);
+        exp = GameBoyUtil.modifyBitOnPosInByte(exp, 3, bit3);
+
+        short pc = cpu.getProgramCounter();
+        pc = (short) (pc + 1);
+
+        byte pc_lsb = GameBoyUtil.getByteFromShort(true, pc);
+        byte pc_msb = GameBoyUtil.getByteFromShort(false, pc);
+
+        short sp = cpu.getStackPointer();
+        sp = (short) (sp - 1);
+        cpu.getMemory().setByte(pc_msb, sp);
+        sp = (short) (sp - 1);
+        cpu.getMemory().setByte(pc_lsb, sp);
+        cpu.setStackPointer(sp);
+
+        short address = GameBoyUtil.getShortFromBytes(exp, (byte) 0);
+        cpu.setProgramCounter(address);
+        cpu.setProgramCounter((short) (cpu.getProgramCounter() - 1)); // account for pc++ at the end of the cycle
+    }
+
+    /**
      * Executes the instructions RET, RETI, JP HL, and LD SP, HL
      */
     public static void executeRET_HL_OPS(byte instruction, CPU cpu) {
