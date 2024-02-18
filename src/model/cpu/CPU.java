@@ -278,6 +278,13 @@ public class CPU {
     }
 
     /**
+     * sets IME to 1 without waiting a cycle. Used by RETI instruction.
+     */
+    public void setIMEImmediately() {
+        this.IME = 1;
+    }
+
+    /**
      * @param IME = 1, then set this.IME to 1 after the instruction following EI.
      *            If IME = 0, set this. IME to 0 immediately and cancel any existing
      *            IMECounter.

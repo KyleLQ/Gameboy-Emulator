@@ -28,6 +28,7 @@ public class MiscExecutionTest {
 
     @Test
     public void testExecuteEI() {
+        cpu.setIME(0);
         byte instructionEI = (byte) 0b11111011;
         byte instructionNOP = (byte) 0b00000000;
         short startAddress = (short) 0xC000;

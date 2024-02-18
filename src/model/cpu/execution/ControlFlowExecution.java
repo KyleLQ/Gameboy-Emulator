@@ -29,7 +29,18 @@ public class ControlFlowExecution {
                 cpu.setProgramCounter((short) (pc - 1)); // account for pc++ at end of cycle
             },
             (CPU cpu) -> {
-                // todo
+                // RETI instruction. Sets IME to 1 without having to wait another instruction.
+
+                short sp = cpu.getStackPointer();
+                byte pc_lsb = cpu.getMemory().getByte(sp);
+                sp = (short) (sp + 1);
+                byte pc_msb = cpu.getMemory().getByte(sp);
+                sp = (short) (sp + 1);
+                cpu.setStackPointer(sp);
+                short pc = GameBoyUtil.getShortFromBytes(pc_lsb, pc_msb);
+                cpu.setProgramCounter((short) (pc - 1)); // account for pc++ at end of cycle
+
+                cpu.setIMEImmediately();
             },
             (CPU cpu) -> {
                 short hl = cpu.getRegisterHL();
