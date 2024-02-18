@@ -8,6 +8,7 @@ import exception.CPUException;
 import java.nio.ByteBuffer;
 import java.util.AbstractMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
@@ -21,6 +22,8 @@ public class CPU {
     private Memory memory;
     private int IME; // interrupt master enable flag
     private int IMECounter; // counter for setting IME. -1 = not ticking.
+
+    private boolean isHalted;
 
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_EXECUTION_MAP = Map.ofEntries(
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^10[01]{6}$"),
@@ -96,7 +99,11 @@ public class CPU {
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11110011$"),
                     MiscExecution::executeDI),
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^11111011$"),
-                    MiscExecution::executeEI)
+                    MiscExecution::executeEI),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^01110110$"),
+                    MiscExecution::executeHALT),
+            new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^00010000$"),
+                    MiscExecution::executeSTOP)
     );
 
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_CB_EXECUTION_MAP = Map.ofEntries(
@@ -124,12 +131,14 @@ public class CPU {
         pc = 0;
 
         setIME(0);
+        isHalted = false;
 
         memory = new Memory();
     }
 
     // todo: Idk whether this refers to m or t cycles
     public void doInstructionCycle() {
+        checkHalt();
         byte instruction = memory.getByte(pc);
         decodeExecuteInstruction(instruction);
         pc++;
@@ -310,6 +319,26 @@ public class CPU {
         } else if (IMECounter == 0) {
             IME = 1;
             IMECounter = -1;
+        }
+    }
+
+    public void setIsHalted(boolean isHalted) {
+        this.isHalted = isHalted;
+    }
+
+    /**
+     * If isHalted, then pause CPU execution until interrupt
+     */
+    public void checkHalt() {
+        if (!isHalted) {
+            return;
+        }
+        // todo will probably need timer involved in some way
+        Set<Integer> pendingInterrupts = memory.getPendingInterrupts();
+        if (!pendingInterrupts.isEmpty() && IME == 1) {
+            // todo handle interrupt
+        } else {
+            // todo do the pc read twice bug if you want to
         }
     }
 

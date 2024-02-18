@@ -26,4 +26,24 @@ public class MiscExecution {
     public static void executeEI(byte instruction, CPU cpu) {
         cpu.setIME(1);
     }
+
+    /**
+     * Executes the HALT instruction.
+     *
+     */
+    public static void executeHALT(byte instruction, CPU cpu) {
+        cpu.setIsHalted(true);
+        // todo add tests later once you have timer setup
+    }
+
+    /**
+     * Executes the STOP instruction
+     */
+    public static void executeSTOP(byte instruction, CPU cpu) {
+        // todo
+        // actual behavior seems to be very complicated, and it doesn't seem to be used in any
+        // commercial games. May not be worth the effort to implement.
+
+        System.out.println("Executing STOP instruction");
+    }
 }
