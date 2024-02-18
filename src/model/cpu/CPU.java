@@ -19,6 +19,8 @@ public class CPU {
     private short sp;
     private short pc;
     private Memory memory;
+    private int IME; // interrupt master enable flag
+    private int IMECounter; // counter for setting IME. -1 = not ticking.
 
     private final Map<Pattern, BiConsumer<Byte, CPU>> REGEX_TO_EXECUTION_MAP = Map.ofEntries(
             new AbstractMap.SimpleEntry<Pattern, BiConsumer<Byte, CPU>>(Pattern.compile("^10[01]{6}$"),
@@ -121,6 +123,8 @@ public class CPU {
         sp = 0;
         pc = 0;
 
+        setIME(0);
+
         memory = new Memory();
     }
 
@@ -129,6 +133,7 @@ public class CPU {
         byte instruction = memory.getByte(pc);
         decodeExecuteInstruction(instruction);
         pc++;
+        tickIMECounter();
     }
 
     // todo this should honestly be private too xd
@@ -266,6 +271,39 @@ public class CPU {
         bb.putShort(value);
         rh = bb.get(0);
         rl = bb.get(1);
+    }
+
+    public int getIME() {
+        return IME;
+    }
+
+    /**
+     * @param IME = 1, then set this.IME to 1 after the instruction following EI.
+     *            If IME = 0, set this. IME to 0 immediately and cancel any existing
+     *            IMECounter.
+     */
+    public void setIME(int IME) {
+        if (IME == 1) {
+            this.IMECounter = 1;
+        } else if (IME == 0) {
+            this.IME = 0;
+            this.IMECounter = -1;
+        } else {
+            throw new CPUException("Invalid value " + IME + "assigned to IME!");
+        }
+    }
+
+    /**
+     * Ticks IMECounter. If IMECounter = 0, set IME flag. If IMECounter = -1,
+     * do not tick.
+     */
+    private void tickIMECounter() {
+        if (IMECounter == 1) {
+            IMECounter--;
+        } else if (IMECounter == 0) {
+            IME = 1;
+            IMECounter = -1;
+        }
     }
 
     public Memory getMemory() {
