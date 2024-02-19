@@ -19,7 +19,7 @@ public class ALUExecution {
     private static final List<BiConsumer<Byte, CPU>> INSTRUCTION_TO_ALU_A_R8_MAP = Arrays.asList(
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
-                cpu.setZeroFlag(((regA + b) == 0) ? 1 : 0);
+                cpu.setZeroFlag(((byte) (regA + b) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(0);
                 updateCarryFlagAdditionR8(cpu.getRa(), b, (byte) 0, cpu);
                 updateHalfCarryFlagAdditionR8(cpu.getRa(), b, (byte) 0, cpu);
@@ -27,7 +27,7 @@ public class ALUExecution {
             },
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
-                cpu.setZeroFlag(((regA + b + cpu.getCarryFlag()) == 0) ? 1 : 0);
+                cpu.setZeroFlag(((byte) (regA + b + cpu.getCarryFlag()) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(0);
                 updateHalfCarryFlagAdditionR8(regA, b, (byte) cpu.getCarryFlag(), cpu);
                 cpu.setRa((byte) (regA + b + cpu.getCarryFlag()));
@@ -35,7 +35,7 @@ public class ALUExecution {
             },
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
-                cpu.setZeroFlag(((regA - b) == 0) ? 1 : 0);
+                cpu.setZeroFlag(((byte) (regA - b) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(1);
                 updateCarryFlagSubtractionR8(regA, b, (byte) 0, cpu);
                 updateHalfCarryFlagSubtractionR8(regA, b, (byte) 0, cpu);
@@ -43,7 +43,7 @@ public class ALUExecution {
             },
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
-                cpu.setZeroFlag(((regA - b - cpu.getCarryFlag()) == 0) ? 1 : 0);
+                cpu.setZeroFlag(((byte) (regA - b - cpu.getCarryFlag()) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(1);
                 updateHalfCarryFlagSubtractionR8(regA, b, (byte) cpu.getCarryFlag(), cpu);
                 cpu.setRa((byte) (regA - b - cpu.getCarryFlag()));
@@ -51,7 +51,7 @@ public class ALUExecution {
             },
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
-                cpu.setZeroFlag(((regA & b) == 0) ? 1 : 0);
+                cpu.setZeroFlag(((byte) (regA & b) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(0);
                 cpu.setCarryFlag(0);
                 cpu.setHalfCarryFlag(1);
@@ -59,7 +59,7 @@ public class ALUExecution {
             },
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
-                cpu.setZeroFlag(((regA ^ b) == 0) ? 1 : 0);
+                cpu.setZeroFlag(((byte) (regA ^ b) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(0);
                 cpu.setCarryFlag(0);
                 cpu.setHalfCarryFlag(0);
@@ -67,7 +67,7 @@ public class ALUExecution {
             },
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
-                cpu.setZeroFlag(((regA | b) == 0) ? 1 : 0);
+                cpu.setZeroFlag(((byte) (regA | b) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(0);
                 cpu.setCarryFlag(0);
                 cpu.setHalfCarryFlag(0);
@@ -75,7 +75,7 @@ public class ALUExecution {
             },
             (Byte b, CPU cpu) -> {
                 byte regA = cpu.getRa();
-                cpu.setZeroFlag(((regA - b) == 0) ? 1 : 0);
+                cpu.setZeroFlag(((byte) (regA - b) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(1);
                 updateCarryFlagSubtractionR8(regA, b, (byte) 0, cpu);
                 updateHalfCarryFlagSubtractionR8(regA, b, (byte) 0, cpu);
@@ -199,7 +199,7 @@ public class ALUExecution {
 
         byte r8 = getR8.apply(cpu);
         int result = GameBoyUtil.zeroExtendByte(r8) + 1;
-        cpu.setZeroFlag((result == 0) ? 1 : 0);
+        cpu.setZeroFlag(( (byte) result == 0) ? 1 : 0);
         cpu.setSubtractionFlag(0);
         updateHalfCarryFlagAdditionR8(r8, (byte) 1, (byte) 0, cpu);
 
@@ -224,7 +224,7 @@ public class ALUExecution {
 
         byte r8 = getR8.apply(cpu);
         int result = GameBoyUtil.zeroExtendByte(r8) - 1;
-        cpu.setZeroFlag((result == 0) ? 1 : 0);
+        cpu.setZeroFlag(((byte) result == 0) ? 1 : 0);
         cpu.setSubtractionFlag(1);
         updateHalfCarryFlagSubtractionR8(r8, (byte) 1, (byte) 0, cpu);
 
