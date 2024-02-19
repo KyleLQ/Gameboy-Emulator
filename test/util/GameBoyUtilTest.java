@@ -31,6 +31,36 @@ public class GameBoyUtilTest {
     }
 
     @Test
+    public void testGetBitPosFromShort() {
+        short s = (short) 0b1111000010010010;
+        assertEquals(1, GameBoyUtil.getBitFromPosInShort(s,15));
+        assertEquals(1, GameBoyUtil.getBitFromPosInShort(s,14));
+        assertEquals(1, GameBoyUtil.getBitFromPosInShort(s,13));
+        assertEquals(1, GameBoyUtil.getBitFromPosInShort(s,12));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,11));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,10));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,9));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,8));
+        assertEquals(1, GameBoyUtil.getBitFromPosInShort(s,7));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,6));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,5));
+        assertEquals(1, GameBoyUtil.getBitFromPosInShort(s,4));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,3));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,2));
+        assertEquals(1, GameBoyUtil.getBitFromPosInShort(s,1));
+        assertEquals(0, GameBoyUtil.getBitFromPosInShort(s,0));
+
+        try {
+            GameBoyUtil.getBitFromPosInShort(s, 16);
+            fail("pos is out of bounds, but didn't fail");
+        } catch (CPUException e) {
+
+        } catch (Exception e) {
+            fail("pos is out of bounds, and failed with wrong exception");
+        }
+    }
+
+    @Test
     public void testModifyBitOnPosInByte() {
         byte b = (byte) 0b10101010;
         b = GameBoyUtil.modifyBitOnPosInByte(b,0, 1);

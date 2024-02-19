@@ -73,6 +73,21 @@ public class GameBoyUtil {
     }
 
     /**
+     * @param s the short to get the bit from
+     * @param pos the position of the bit in short s, in [0, 15]
+     * @return value of bit, in [0,1]
+     */
+    public static int getBitFromPosInShort(short s, int pos) {
+        if (pos < 0 || pos > 15) {
+            throw new CPUException("pos is out of range!");
+        } else if (pos < 8) {
+            return getBitFromPosInByte(getByteFromShort(true, s), pos);
+        } else {
+            return getBitFromPosInByte(getByteFromShort(false, s), pos - 8);
+        }
+    }
+
+    /**
      * @param b the byte to modify
      * @param pos the position of the bit in b to modify
      * @param bit the value to modify b[pos] to, 0 or 1

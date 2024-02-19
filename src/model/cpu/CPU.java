@@ -19,7 +19,9 @@ public class CPU {
     private byte ra,rb,rc,rd,re,rf,rh,rl;
     private short sp;
     private short pc;
+
     private Memory memory;
+
     private int IME; // interrupt master enable flag
     private int IMECounter; // counter for setting IME. -1 = not ticking.
 
@@ -136,10 +138,9 @@ public class CPU {
         memory = new Memory();
     }
 
-    // todo: Idk whether this refers to m or t cycles
     public void doInstructionCycle() {
-        checkHalt();
         byte instruction = memory.getByte(pc);
+        checkHalt();
         decodeExecuteInstruction(instruction);
         pc++;
         tickIMECounter();
@@ -330,15 +331,14 @@ public class CPU {
      * If isHalted, then pause CPU execution until interrupt
      */
     public void checkHalt() {
-        if (!isHalted) {
-            return;
-        }
-        // todo will probably need timer involved in some way
-        Set<Integer> pendingInterrupts = memory.getPendingInterrupts();
-        if (!pendingInterrupts.isEmpty() && IME == 1) {
-            // todo handle interrupt
-        } else {
-            // todo do the pc read twice bug if you want to
+        while (isHalted) {
+            // todo "time" should still be passing in some way, probably not m-cycles though
+            Set<Integer> pendingInterrupts = memory.getPendingInterrupts();
+            if (!pendingInterrupts.isEmpty() && IME == 1) {
+                // todo handle interrupt
+            } else {
+                // todo do the pc read twice bug if you want to
+            }
         }
     }
 
