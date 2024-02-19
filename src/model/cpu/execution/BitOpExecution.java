@@ -30,7 +30,7 @@ public class BitOpExecution {
             },
             (Byte b, CPU cpu) -> {
                 int bit0Value = GameBoyUtil.getBitFromPosInByte(b, 0);
-                int result = b >>> 1;
+                int result = GameBoyUtil.zeroExtendByte(b) >>> 1;
                 byte byteResult = (byte) result;
                 byteResult = GameBoyUtil.modifyBitOnPosInByte(byteResult, 7, bit0Value);
                 cpu.setZeroFlag((GameBoyUtil.zeroExtendByte(byteResult) == 0) ? 1 : 0);
@@ -53,7 +53,7 @@ public class BitOpExecution {
             (Byte b, CPU cpu) -> {
                 int carryValue = cpu.getCarryFlag();
                 cpu.setCarryFlag(GameBoyUtil.getBitFromPosInByte(b, 0));
-                int result = b >>> 1;
+                int result = GameBoyUtil.zeroExtendByte(b) >>> 1;
                 byte byteResult = (byte) result;
                 byteResult = GameBoyUtil.modifyBitOnPosInByte(byteResult, 7, carryValue);
                 cpu.setZeroFlag((GameBoyUtil.zeroExtendByte(byteResult) == 0) ? 1 : 0);
@@ -92,7 +92,7 @@ public class BitOpExecution {
             },
             (Byte b, CPU cpu) -> {
                 cpu.setCarryFlag(GameBoyUtil.getBitFromPosInByte(b, 0));
-                int result = b >>> 1;
+                int result = GameBoyUtil.zeroExtendByte(b) >>> 1;
                 byte byteResult = (byte) result;
                 cpu.setZeroFlag((GameBoyUtil.zeroExtendByte(byteResult) == 0) ? 1 : 0);
                 cpu.setSubtractionFlag(0);
@@ -117,7 +117,7 @@ public class BitOpExecution {
             (CPU cpu) -> {
                 byte accumulatorValue = cpu.getRa();
                 int bit0Value = GameBoyUtil.getBitFromPosInByte(accumulatorValue, 0);
-                int result = accumulatorValue >>> 1;
+                int result = GameBoyUtil.zeroExtendByte(accumulatorValue) >>> 1;
                 byte byteResult = (byte) result;
                 byteResult = GameBoyUtil.modifyBitOnPosInByte(byteResult, 7, bit0Value);
                 cpu.setRa(byteResult);
@@ -142,7 +142,7 @@ public class BitOpExecution {
                 byte accumulatorValue = cpu.getRa();
                 int carryValue = cpu.getCarryFlag();
                 cpu.setCarryFlag(GameBoyUtil.getBitFromPosInByte(accumulatorValue, 0));
-                int result = accumulatorValue >>> 1;
+                int result = GameBoyUtil.zeroExtendByte(accumulatorValue) >>> 1;
                 byte byteResult = (byte) result;
                 byteResult = GameBoyUtil.modifyBitOnPosInByte(byteResult, 7, carryValue);
                 cpu.setRa(byteResult);
