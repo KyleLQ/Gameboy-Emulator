@@ -138,8 +138,8 @@ public class ALUExecution {
 
     /**
      * Executes the instruction ADD SP, i8.
-     * Adds the signed byte i8 to SP. Updates C and H only if there is a carry from bit 7 and 3
-     * respectively. (therefore only in the case where i8 is positive)
+     * Adds the signed byte i8 to SP. Updates C and H only if there is a carry
+     * from bit 7 and 3 respectively. (applies to negative i8 as well, using twos complement addition)
      */
     public static void executeADD_SP_i8(byte instruction, CPU cpu) {
         short pc = cpu.getProgramCounter();
@@ -151,21 +151,17 @@ public class ALUExecution {
         cpu.setStackPointer((short) (sp + i8));
         cpu.setZeroFlag(0);
         cpu.setSubtractionFlag(0);
-        if (i8 > 0) {
-            byte sp_lsb = GameBoyUtil.getByteFromShort(true, sp);
-            updateCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
-            updateHalfCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
-        } else {
-            cpu.setCarryFlag(0);
-            cpu.setHalfCarryFlag(0);
-        }
+
+        byte sp_lsb = GameBoyUtil.getByteFromShort(true, sp);
+        updateCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
+        updateHalfCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
     }
 
     /**
      * Executes the instruction LD HL, SP + i8.
      * The signed byte i8 is added to SP. The result is loaded into HL.
-     * C and H flags are updated only if there is a carry from bit 7 and 3.
-     * (therefore only in the case where i8 is positive)
+     * Updates C and H only if there is a carry from bit 7 and 3 respectively.
+     * (applies to negative i8 as well, using twos complement addition)
      */
     public static void executeLD_HL_SP_plus_i8(byte instruction, CPU cpu) {
         short pc = cpu.getProgramCounter();
@@ -177,14 +173,10 @@ public class ALUExecution {
         cpu.setRegisterHL((short) (sp + i8));
         cpu.setZeroFlag(0);
         cpu.setSubtractionFlag(0);
-        if (i8 > 0) {
-            byte sp_lsb = GameBoyUtil.getByteFromShort(true, sp);
-            updateCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
-            updateHalfCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
-        } else {
-            cpu.setCarryFlag(0);
-            cpu.setHalfCarryFlag(0);
-        }
+
+        byte sp_lsb = GameBoyUtil.getByteFromShort(true, sp);
+        updateCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
+        updateHalfCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
     }
 
     /**
