@@ -120,17 +120,17 @@ public class CPU {
     );
 
     public CPU () {
-        ra = 0;
-        rb = 0;
-        rc = 0;
-        rd = 0;
-        re = 0;
-        rf = 0;
-        rh = 0;
-        rl = 0;
+        ra = (byte) 0x1;
+        rb = (byte) 0x0;
+        rc = (byte) 0x13;
+        rd = (byte) 0x0;
+        re = (byte) 0xD8;
+        rf = (byte) 0xB0;
+        rh = (byte) 0x01;
+        rl = (byte) 0x4D;
 
-        sp = 0;
-        pc = 0;
+        sp = (short) 0xFFFe;
+        pc = (short) 0x100;
 
         setIME(0);
         isHalted = false;
@@ -227,11 +227,13 @@ public class CPU {
         }
     }
 
+    // the lower 4 bits of register F should always be 0.
+    // This method is the only way to access these lower 4 bits.
     public short getRegisterAF() {
         ByteBuffer bb = ByteBuffer.allocate(2);
         bb.put(ra);
         bb.put(rf);
-        return bb.getShort(0);
+        return (short) (bb.getShort(0) & 0xFFF0);
     }
 
     public void setRegisterAF(short value) {
@@ -402,8 +404,9 @@ public class CPU {
         this.re = re;
     }
 
+    // todo this method is probably not needed
     public byte getRf() {
-        return rf;
+        return (byte) (rf & 0xF0);
     }
 
     public void setRf(byte rf) {
