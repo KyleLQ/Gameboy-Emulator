@@ -2,9 +2,7 @@ package model.memory;
 
 import util.GameBoyUtil;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Class that represents the memory in the Game Boy.
@@ -39,6 +37,10 @@ public class Memory {
     }
 
     public byte getByte(short address) {
+        // todo for testing only
+        if (address == (short) 0xFF44) {
+            return (byte) 0x90;
+        }
         doMCycle();
         return memory[GameBoyUtil.zeroExtendShort(address)];
     }
@@ -57,6 +59,8 @@ public class Memory {
             memory[GameBoyUtil.zeroExtendShort(address)] = value;
         }
         doMCycle();
+        // todo for testing only
+        printSerialOutput();
     }
 
     // todo this really belongs in CPU, but that may require refactoring. actually maybe not, idk
@@ -115,13 +119,13 @@ public class Memory {
     }
 
 
-    // todo should be a priority queue
     /**
-     * returns a set containing all pending interrupts, i.e. bit positions
-     * in both IE and IF that are 1.
+     * returns a queue containing all pending interrupts, i.e. bit positions
+     * in both IE and IF that are 1. They can be removed in priority order, where
+     * lowest bit position = highest priority.
      */
-    public Set<Integer> getPendingInterrupts() {
-        Set<Integer> pendingInterrupts = new HashSet<>();
+    public Queue<Integer> getPendingInterrupts() {
+        Queue<Integer> pendingInterrupts = new PriorityQueue<>();
         byte andResult = (byte) (getByte(IE_ADDRESS) & getByte(IF_ADDRESS));
         for (int i = VBLANK; i <= JOYPAD; i++) {
             if (GameBoyUtil.getBitFromPosInByte(andResult, i) == 1) {
@@ -131,7 +135,15 @@ public class Memory {
         return pendingInterrupts;
     }
 
+    /**
+     * @return the IE register. This does NOT consume an m-cycle.
+     */
+    public byte getIERegister() {
+        return memory[GameBoyUtil.zeroExtendShort(IE_ADDRESS)];
+    }
+
     // todo these cause m-cycle to pass - is this OK??? - are these even being used????
+    // the above IE and IF register getters and setter probably make these individual methods redundant!
     /**
      * @return bit 4 of the byte at address 0xFFFF.
      * This represents the joypad bit of the IE register.
@@ -320,5 +332,38 @@ public class Memory {
         byte b = getByte(IF_ADDRESS);
         b = GameBoyUtil.modifyBitOnPosInByte(b,VBLANK, vblank);
         setByte(b, IF_ADDRESS);
+    }
+
+    // todo for testing purposes, replace with a better boot rom loader later
+    public void loadBootRom(byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++) {
+            memory[i] = bytes[i];
+        }
+    }
+
+    // todo for testing purposes, replace with something better later
+    public void loadGameRom(byte[] bytes) {
+        for (int i = 0; i < bytes.length; i++) {
+            memory[i] = bytes[i];
+        }
+    }
+
+    // todo for testing purposes, probably remove later
+    public void printSerialOutput() {
+        if (memory[GameBoyUtil.zeroExtendShort((short) 0xff02)] == (byte) 0x81) {
+            byte b = memory[GameBoyUtil.zeroExtendShort((short) 0xff01)];
+            char c = (char) GameBoyUtil.zeroExtendByte(b);
+            System.out.println(c);
+            memory[GameBoyUtil.zeroExtendShort((short) 0xff02)] = (byte) 0;
+        }
+    }
+
+    // todo for testing purposes, probably remove later
+    public byte getByteNoTick(short address) {
+        // todo for testing purposes only
+        if (address == (short) 0xFF44) {
+            return (byte) 0x90;
+        }
+        return memory[GameBoyUtil.zeroExtendShort(address)];
     }
 }

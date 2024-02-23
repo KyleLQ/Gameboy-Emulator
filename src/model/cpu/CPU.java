@@ -8,7 +8,7 @@ import exception.CPUException;
 import java.nio.ByteBuffer;
 import java.util.AbstractMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.Queue;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
@@ -144,6 +144,7 @@ public class CPU {
         decodeExecuteInstruction(instruction);
         pc++;
         tickIMECounter();
+        checkInterrupts();
     }
 
     // todo this should honestly be private too xd
@@ -332,16 +333,66 @@ public class CPU {
     /**
      * If isHalted, then pause CPU execution until interrupt
      */
-    public void checkHalt() {
+    private void checkHalt() {
+        // todo add the halt bug if you want to
         while (isHalted) {
             // todo "time" should still be passing in some way, probably not m-cycles though
-            Set<Integer> pendingInterrupts = memory.getPendingInterrupts();
-            if (!pendingInterrupts.isEmpty() && IME == 1) {
-                // todo handle interrupt
-            } else {
-                // todo do the pc read twice bug if you want to
+            // presumably other components like the ppu would be progressing time, even though the cpu is paused
+
+            Queue<Integer> pendingInterrupts = memory.getPendingInterrupts();
+            if (!pendingInterrupts.isEmpty()) {
+              isHalted = false;
+              checkInterrupts();
             }
         }
+    }
+
+    // todo add tests
+    /**
+     * Check for any interrupts being requested. If there are, and they are enabled,
+     * then service the interrupt.
+     */
+    private void checkInterrupts() {
+        if (IME != 1) {
+            return;
+        }
+        Queue<Integer> pendingInterrupts = memory.getPendingInterrupts();
+        while (!pendingInterrupts.isEmpty()) {
+            int interrupt = pendingInterrupts.poll();
+            if (GameBoyUtil.getBitFromPosInByte(memory.getIERegister(), interrupt) == 1) {
+                serviceInterrupt(interrupt);
+            }
+        }
+    }
+
+    // todo add tests
+    /**
+     * Service the corresponding interrupt. Sets IME and corresponding IF bit to 0, pushes
+     * current PC to stack, and then executes interrupt handler. (It is assumed that
+     * that interrupt handler itself will call RETI). This function should take 5 m-cycles.
+     */
+    private void serviceInterrupt(int interrupt) {
+        setIME(0); //todo is this right? cancelling existing IME timer?
+        byte ifRegister = memory.getByte(Memory.IF_ADDRESS);
+        ifRegister = GameBoyUtil.modifyBitOnPosInByte(ifRegister, interrupt, 0);
+        memory.setByte(ifRegister, Memory.IF_ADDRESS);
+
+        byte pc_lsb = GameBoyUtil.getByteFromShort(true, pc);
+        byte pc_msb = GameBoyUtil.getByteFromShort(false, pc);
+
+        sp = (short) (sp - 1);
+        memory.setByte(pc_msb, sp);
+        sp = (short) (sp - 1);
+        memory.setByte(pc_lsb, sp);
+
+        pc = switch(interrupt) {
+            case Memory.VBLANK -> (short) 0x40;
+            case Memory.LCD -> (short) 0x48;
+            case Memory.TIMER -> (short) 0x50;
+            case Memory.SERIAL -> (short) 0x58;
+            default -> (short) 0x60; // JOYPAD
+        };
+        memory.doMCycle();
     }
 
     public Memory getMemory() {

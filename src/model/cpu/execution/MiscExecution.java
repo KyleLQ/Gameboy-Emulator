@@ -33,6 +33,7 @@ public class MiscExecution {
      */
     public static void executeHALT(byte instruction, CPU cpu) {
         cpu.setIsHalted(true);
+
         // todo add tests later once you have timer setup
     }
 

@@ -4,7 +4,7 @@ import model.cpu.CPU;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
+import java.util.Queue;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -64,16 +64,17 @@ public class MemoryTest {
 
     @Test
     public void testPendingInterrupts() {
-        byte IE = (byte) 0b11110110;
+        byte IE = (byte) 0b11110111;
         byte IF = (byte) 0b11110101;
         cpu.getMemory().setByte(IE, Memory.IE_ADDRESS);
         cpu.getMemory().setByte(IF, Memory.IF_ADDRESS);
-        Set<Integer> pendingInterrupts = cpu.getMemory().getPendingInterrupts();
+        Queue<Integer> pendingInterrupts = cpu.getMemory().getPendingInterrupts();
+        assertEquals(3, pendingInterrupts.size());
+        assertEquals(Memory.VBLANK, pendingInterrupts.poll());
         assertEquals(2, pendingInterrupts.size());
-        assertTrue(pendingInterrupts.contains(Memory.JOYPAD));
-        assertFalse(pendingInterrupts.contains(Memory.SERIAL));
-        assertTrue(pendingInterrupts.contains(Memory.TIMER));
-        assertFalse(pendingInterrupts.contains(Memory.LCD));
-        assertFalse(pendingInterrupts.contains(Memory.VBLANK));
+        assertEquals(Memory.TIMER, pendingInterrupts.poll());
+        assertEquals(1, pendingInterrupts.size());
+        assertEquals(Memory.JOYPAD, pendingInterrupts.poll());
+        assertEquals(0, pendingInterrupts.size());
     }
 }

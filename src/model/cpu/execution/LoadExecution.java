@@ -1,6 +1,5 @@
 package model.cpu.execution;
 
-import exception.CPUException;
 import model.cpu.CPU;
 import util.GameBoyUtil;
 
@@ -137,8 +136,8 @@ public class LoadExecution {
      */
     public static void executeLD_r8_r8(byte instruction, CPU cpu) {
         if (instruction == (byte) 0b01110110) {
-            // todo add a call to HALT
-            throw new CPUException("todo add a call to halt");
+            MiscExecution.executeHALT(instruction, cpu);
+            return;
         }
         Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
                 GameBoyUtil.getBitFromPosInByte(instruction, 2),
