@@ -151,11 +151,10 @@ public class BitOpExecution {
                 cpu.setHalfCarryFlag(0);
             },
             (CPU cpu) -> {
-                // todo ??????? - pretty sure this is right
                 byte accumulatorValue = cpu.getRa();
                 int lowerNibble = GameBoyUtil.getNibble(true, accumulatorValue);
                 int upperNibble = GameBoyUtil.getNibble(false, accumulatorValue);
-                int newCarryValue = 0;
+                int newCarryValue = cpu.getCarryFlag(); // if not modified, keep as previous value
                 if (cpu.getSubtractionFlag() == 0) {
                     if (cpu.getHalfCarryFlag() == 1 || lowerNibble > 9) {
                         lowerNibble += 6;

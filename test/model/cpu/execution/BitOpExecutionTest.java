@@ -315,7 +315,6 @@ public class BitOpExecutionTest {
 
     @Test
     public void testDAAAddition() {
-        // todo ??????????
         /*
         0x37 + 0x78 = 0x115, but this is past 0x99, so truncate to 0x15
          */
@@ -363,7 +362,6 @@ public class BitOpExecutionTest {
 
     @Test
     public void testDAASubtraction() {
-        // todo ??????????
         /*
         0x41 - 0x19 = 0x22
          */
@@ -407,6 +405,26 @@ public class BitOpExecutionTest {
         assertEquals(prevSubtractionValue, cpu.getSubtractionFlag()); // should be unchanged
         assertEquals(0, cpu.getHalfCarryFlag());
         assertEquals(0, cpu.getCarryFlag());
+    }
+
+    @Test
+    public void testExtraDAA() {
+        cpu.setRa((byte) 0x00);
+        cpu.setCarryFlag(1);
+        cpu.setHalfCarryFlag(1);
+        cpu.setZeroFlag(1);
+        cpu.setSubtractionFlag(1);
+
+        System.out.println("Apply DAA on " + TestUtil.convertToHexString(cpu.getRa()) + " to convert to BCD");
+        byte instruction = (byte) 0b00100111;
+        int prevSubtractionValue = cpu.getSubtractionFlag();
+        cpu.decodeExecuteInstruction(instruction);
+        System.out.println(TestUtil.convertToHexString(cpu.getRa()));
+        assertEquals((byte) 0x9A, cpu.getRa());
+        assertEquals(0, cpu.getZeroFlag());
+        assertEquals(prevSubtractionValue, cpu.getSubtractionFlag()); // should be unchanged
+        assertEquals(0, cpu.getHalfCarryFlag());
+        assertEquals(1, cpu.getCarryFlag());
     }
 
     @Test
