@@ -274,7 +274,7 @@ public class LoadExecutionTest {
     public void testExecutePUSH_r16() {
         byte instruction = (byte) 0b11110101;
         short startAddress = (short) 0xC000;
-        short af = (short) 0x3412;
+        short af = (short) 0x3410;
         short sp = (short) 0xD002;
 
         cpu.getMemory().setByte(instruction, startAddress);
@@ -288,7 +288,7 @@ public class LoadExecutionTest {
         System.out.println("(0xD001) = " + TestUtil.convertToHexString(cpu.getMemory().getByte((short) 0xD001)) +
                 ", (0xD000) = " + TestUtil.convertToHexString(cpu.getMemory().getByte((short) 0xD000)));
         assertEquals((byte) 0x34, cpu.getMemory().getByte((short) 0xD001));
-        assertEquals((byte) 0x12, cpu.getMemory().getByte((short) 0xD000));
+        assertEquals((byte) 0x10, cpu.getMemory().getByte((short) 0xD000));
         assertEquals((short) 0xD000, cpu.getStackPointer());
     }
 
@@ -297,7 +297,7 @@ public class LoadExecutionTest {
         byte instruction = (byte) 0b11110001;
         short startAddress = (short) 0xC000;
         byte memoryVal_msb = (byte) 0x34;
-        byte memoryVal_lsb = (byte) 0x12;
+        byte memoryVal_lsb = (byte) 0x10;
         short sp = (short) 0xD000;
 
         cpu.getMemory().setByte(instruction, startAddress);
@@ -311,7 +311,7 @@ public class LoadExecutionTest {
                 ", SP = " + TestUtil.convertToHexString(sp));
         cpu.doInstructionCycle();
         System.out.println("AF = " + TestUtil.convertToHexString(cpu.getRegisterAF()));
-        assertEquals((short) 0x3412, cpu.getRegisterAF());
+        assertEquals((short) 0x3410, cpu.getRegisterAF());
         assertEquals((short) 0xD002, cpu.getStackPointer());
     }
 }

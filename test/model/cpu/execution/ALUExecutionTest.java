@@ -363,8 +363,8 @@ public class ALUExecutionTest {
         assertEquals((short) 0xC002, cpu.getProgramCounter());
         assertEquals(0, cpu.getZeroFlag());
         assertEquals(0, cpu.getSubtractionFlag());
-        assertEquals(0, cpu.getHalfCarryFlag());
-        assertEquals(0, cpu.getCarryFlag());
+        assertEquals(1, cpu.getHalfCarryFlag());
+        assertEquals(1, cpu.getCarryFlag());
     }
 
     @Test
