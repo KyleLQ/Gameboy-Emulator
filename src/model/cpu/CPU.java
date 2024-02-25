@@ -139,8 +139,8 @@ public class CPU {
     }
 
     public void doInstructionCycle() {
-        byte instruction = memory.getByte(pc);
         checkHalt();
+        byte instruction = memory.getByte(pc);
         decodeExecuteInstruction(instruction);
         pc++;
         tickIMECounter();
@@ -347,7 +347,6 @@ public class CPU {
         }
     }
 
-    // todo add tests
     /**
      * Check for any interrupts being requested. If there are, and they are enabled,
      * then service the interrupt.
@@ -361,18 +360,18 @@ public class CPU {
             int interrupt = pendingInterrupts.poll();
             if (GameBoyUtil.getBitFromPosInByte(memory.getIERegister(), interrupt) == 1) {
                 serviceInterrupt(interrupt);
+                break;
             }
         }
     }
 
-    // todo add tests
     /**
      * Service the corresponding interrupt. Sets IME and corresponding IF bit to 0, pushes
      * current PC to stack, and then executes interrupt handler. (It is assumed that
      * that interrupt handler itself will call RETI). This function should take 5 m-cycles.
      */
     private void serviceInterrupt(int interrupt) {
-        setIME(0); //todo is this right? cancelling existing IME timer?
+        setIME(0);
         byte ifRegister = memory.getByte(Memory.IF_ADDRESS);
         ifRegister = GameBoyUtil.modifyBitOnPosInByte(ifRegister, interrupt, 0);
         memory.setByte(ifRegister, Memory.IF_ADDRESS);
@@ -386,11 +385,11 @@ public class CPU {
         memory.setByte(pc_lsb, sp);
 
         pc = switch(interrupt) {
-            case Memory.VBLANK -> (short) 0x40;
-            case Memory.LCD -> (short) 0x48;
-            case Memory.TIMER -> (short) 0x50;
-            case Memory.SERIAL -> (short) 0x58;
-            default -> (short) 0x60; // JOYPAD
+            case Memory.VBLANK -> Memory.VBLANK_HANDLER_ADDRESS;
+            case Memory.LCD -> Memory.LCD_HANDLER_ADDRESS;
+            case Memory.TIMER -> Memory.TIMER_HANDLER_ADDRESS;
+            case Memory.SERIAL -> Memory.SERIAL_HANDLER_ADDRESS;
+            default -> Memory.JOYPAD_HANDLER_ADDRESS;
         };
         memory.doMCycle();
     }

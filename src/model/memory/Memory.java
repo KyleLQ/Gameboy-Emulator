@@ -25,12 +25,15 @@ public class Memory {
     public static final int TIMER = 2;
     public static final int LCD = 1;
     public static final int VBLANK = 0;
+    public static final short JOYPAD_HANDLER_ADDRESS = (short) 0x60;
+    public static final short SERIAL_HANDLER_ADDRESS = (short) 0x58;
+    public static final short TIMER_HANDLER_ADDRESS = (short) 0x50;
+    public static final short LCD_HANDLER_ADDRESS = (short) 0x48;
+    public static final short VBLANK_HANDLER_ADDRESS = (short) 0x40;
 
-    // todo technically part of the memory is unusable or echoed. probably not bother with that for now.
     public Memory() {
         memory = new byte[0x10000];
         Arrays.fill(memory, (byte) 0);
-        // todo what to init IE and IF registers as???
         sysClock = 0;
         oldEnabled = 0; // todo idk if this is right
         requestTimerInterrupt = false;
