@@ -120,6 +120,20 @@ public class CPU {
     );
 
     public CPU () {
+        cpuSetup();
+        memory = new Memory();
+    }
+
+    public CPU (byte[] rom) {
+        cpuSetup();
+        memory = new Memory(rom);
+    }
+
+    /**
+     * initializes the CPU to the state it would have
+     * after executing the DMG boot rom.
+     */
+    private void cpuSetup() {
         ra = (byte) 0x1;
         rb = (byte) 0x0;
         rc = (byte) 0x13;
@@ -134,8 +148,6 @@ public class CPU {
 
         setIME(0);
         isHalted = false;
-
-        memory = new Memory();
     }
 
     public void doInstructionCycle() {

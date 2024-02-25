@@ -10,9 +10,8 @@ public class main {
     static int i = 1;
     static StringBuilder stringBuilder = new StringBuilder();
     public static void main(String[] args) {
-        CPU cpu = new CPU();
-        String testFile = "roms/gb-test-roms-master/cpu_instrs/individual/02-interrupts.gb";
-        cpu.getMemory().loadGameRom(readFile(testFile));
+        String testFile = "roms/gb-test-roms-master/cpu_instrs/cpu_instrs.gb";
+        CPU cpu = new CPU(readFile(testFile));
         while (true) {
             i++;
             //writeToFile(cpu);
@@ -24,9 +23,6 @@ public class main {
         byte[] bytes = {};
         try (FileInputStream fis = new FileInputStream(filename)) {
             bytes = fis.readAllBytes();
-            for (byte b : bytes) {
-                //System.out.println(GameBoyUtil.convertByteToBinaryString(b));
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }

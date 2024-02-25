@@ -10,6 +10,14 @@ import java.util.*;
 public class Memory {
     private byte[] memory;
 
+    enum MBC {
+        NO_MBC,
+        MBC_1
+    }
+    private MBC mbc; // the type of mapper used on the cartridge
+    private int rom_banks; // the amount of ROM banks on the cartridge
+    private int ram_banks; // the amount of RAM banks on the cartridge
+
     // todo the timing related stuff probably belongs in CPU
     private short sysClock; // upper 8 bits are mapped to DIV register
     private int oldEnabled; // enable bit value at previous tick
@@ -32,11 +40,53 @@ public class Memory {
     public static final short VBLANK_HANDLER_ADDRESS = (short) 0x40;
 
     public Memory() {
-        memory = new byte[0x10000];
+        memorySetup();
         Arrays.fill(memory, (byte) 0);
+        getMemoryBankInfo();
+    }
+
+    public Memory(byte[] rom) {
+        memorySetup();
+        System.arraycopy(rom, 0, memory, 0, rom.length);
+        getMemoryBankInfo();
+    }
+
+    private void memorySetup() {
+        memory = new byte[0x10000];
         sysClock = 0;
         oldEnabled = 0; // todo idk if this is right
         requestTimerInterrupt = false;
+    }
+
+    private void getMemoryBankInfo() {
+        final short MBC_ADDRESS = (short) 0x147;
+        final short ROM_BANKS_ADDRESS = (short) 0x148;
+        final short RAM_BANKS_ADDRESS = (short) 0x149;
+
+        mbc = switch(memory[MBC_ADDRESS]) {
+            case (byte) 0x1, (byte) 0x2, (byte) 0x3 ->  MBC.MBC_1;
+            default -> MBC.NO_MBC; // 0x0 case
+        };
+
+        rom_banks = switch(memory[ROM_BANKS_ADDRESS]) {
+            case (byte) 0x1 -> 4;
+            case (byte) 0x2 -> 8;
+            case (byte) 0x3 -> 16;
+            case (byte) 0x4 -> 32;
+            case (byte) 0x5 -> 64;
+            case (byte) 0x6 -> 128;
+            case (byte) 0x7 -> 256;
+            case (byte) 0x8 -> 512;
+            default -> 2; // 0x0 case, no banking beyond the 2 already present
+        };
+
+        ram_banks = switch(memory[RAM_BANKS_ADDRESS]) {
+            case (byte) 0x2 -> 1;
+            case (byte) 0x3 -> 4;
+            case (byte) 0x4 -> 16;
+            case (byte) 0x5 -> 8;
+            default -> 0; // 0x0 case, no RAM present in cartridge
+        };
     }
 
     public byte getByte(short address) {
@@ -335,20 +385,6 @@ public class Memory {
         byte b = getByte(IF_ADDRESS);
         b = GameBoyUtil.modifyBitOnPosInByte(b,VBLANK, vblank);
         setByte(b, IF_ADDRESS);
-    }
-
-    // todo for testing purposes, replace with a better boot rom loader later
-    public void loadBootRom(byte[] bytes) {
-        for (int i = 0; i < bytes.length; i++) {
-            memory[i] = bytes[i];
-        }
-    }
-
-    // todo for testing purposes, replace with something better later
-    public void loadGameRom(byte[] bytes) {
-        for (int i = 0; i < bytes.length; i++) {
-            memory[i] = bytes[i];
-        }
     }
 
     // todo for testing purposes, probably remove later
