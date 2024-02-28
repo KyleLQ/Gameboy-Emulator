@@ -1,5 +1,7 @@
 package model.memory;
 
+import exception.MemoryException;
+import util.Constants;
 import util.GameBoyUtil;
 
 import java.util.*;
@@ -8,67 +10,62 @@ import java.util.*;
  * Class that represents the memory in the Game Boy.
  */
 public class Memory {
-    private byte[] memory;
 
     enum MBC {
         NO_MBC,
         MBC_1
     }
     private MBC mbc; // the type of mapper used on the cartridge
-    private int rom_banks; // the amount of ROM banks on the cartridge
-    private int ram_banks; // the amount of RAM banks on the cartridge
+    private int romBanks; // the amount of ROM banks on the cartridge
+    private int ramBanks; // the amount of RAM banks on the cartridge
+    private byte[] fixedRom; // fixed ROM bank 0 from the cartridge (I think technically you can switch, but just ignore)
+    private byte[] switchableRom; // potentially switchable ROM banks 1-N from cartridge
+    private byte[] vram; // VRAM from the console
+    private byte[] cartridgeRam; // potentially switchable RAM banks 0-N from cartridge
+    private byte[] consoleRam; // RAM from the console (will have to split this into 2 potentially for GBC)
+    private byte[] oam; // todo once you work on ppu
+    private byte[] ioRegisters; // data for IO registers
+    private byte[] hram; // data for high ram
+    private byte ieRegister; // interrupt enable register
+
+    // todo the 4 Cartridge registers below are probably specific to MBC1
+    private boolean ramEnabled; // determines whether cartridge RAM is enabled
+    private int currRomBank; // current ROM bank number in use for switchableRom section, represents either the 5, or 5 and 2 bit registers together
+    private int currRamBank; // current RAM bank number for use in cartridgeRam section, represents the 2 bit register
+    private boolean isRamMode; // true = RAM mode, false = ROM mode
+
+    // todo end MBC1 specific =================
 
     // todo the timing related stuff probably belongs in CPU
     private short sysClock; // upper 8 bits are mapped to DIV register
     private int oldEnabled; // enable bit value at previous tick
     private boolean requestTimerInterrupt; // request timer interrupt due to TIMA overflow on next m-cycle
-    public static final short DIV_ADDRESS = (short) 0xFF04;
-    public static final short TIMA_ADDRESS = (short) 0xFF05;
-    public static final short TMA_ADDRESS = (short) 0xFF06;
-    public static final short TAC_ADDRESS = (short) 0xFF07;
-    public static final short IE_ADDRESS = (short) 0xFFFF;
-    public static final short IF_ADDRESS = (short) 0xFF0F;
-    public static final int JOYPAD = 4;
-    public static final int SERIAL = 3;
-    public static final int TIMER = 2;
-    public static final int LCD = 1;
-    public static final int VBLANK = 0;
-    public static final short JOYPAD_HANDLER_ADDRESS = (short) 0x60;
-    public static final short SERIAL_HANDLER_ADDRESS = (short) 0x58;
-    public static final short TIMER_HANDLER_ADDRESS = (short) 0x50;
-    public static final short LCD_HANDLER_ADDRESS = (short) 0x48;
-    public static final short VBLANK_HANDLER_ADDRESS = (short) 0x40;
 
     public Memory() {
-        memorySetup();
-        Arrays.fill(memory, (byte) 0);
-        getMemoryBankInfo();
+        byte[] cartridge = new byte[0x8000];
+        getMemoryBankInfo(cartridge);
+        memorySetup(cartridge);
     }
 
-    public Memory(byte[] rom) {
-        memorySetup();
-        System.arraycopy(rom, 0, memory, 0, rom.length);
-        getMemoryBankInfo();
+    public Memory(byte[] cartridge) {
+        getMemoryBankInfo(cartridge);
+        memorySetup(cartridge);
     }
 
-    private void memorySetup() {
-        memory = new byte[0x10000];
-        sysClock = 0;
-        oldEnabled = 0; // todo idk if this is right
-        requestTimerInterrupt = false;
-    }
-
-    private void getMemoryBankInfo() {
+    /**
+     * gets MBC type, and number of ram and ram banks on cartridge
+     */
+    private void getMemoryBankInfo(byte[] cartridge) {
         final short MBC_ADDRESS = (short) 0x147;
         final short ROM_BANKS_ADDRESS = (short) 0x148;
         final short RAM_BANKS_ADDRESS = (short) 0x149;
 
-        mbc = switch(memory[MBC_ADDRESS]) {
+        mbc = switch(cartridge[MBC_ADDRESS]) {
             case (byte) 0x1, (byte) 0x2, (byte) 0x3 ->  MBC.MBC_1;
             default -> MBC.NO_MBC; // 0x0 case
         };
 
-        rom_banks = switch(memory[ROM_BANKS_ADDRESS]) {
+        romBanks = switch(cartridge[ROM_BANKS_ADDRESS]) {
             case (byte) 0x1 -> 4;
             case (byte) 0x2 -> 8;
             case (byte) 0x3 -> 16;
@@ -77,10 +74,10 @@ public class Memory {
             case (byte) 0x6 -> 128;
             case (byte) 0x7 -> 256;
             case (byte) 0x8 -> 512;
-            default -> 2; // 0x0 case, no banking beyond the 2 already present
+            default -> 2; // 0x0 case, no banking beyond the 2 already present in cartridge
         };
 
-        ram_banks = switch(memory[RAM_BANKS_ADDRESS]) {
+        ramBanks = switch(cartridge[RAM_BANKS_ADDRESS]) {
             case (byte) 0x2 -> 1;
             case (byte) 0x3 -> 4;
             case (byte) 0x4 -> 16;
@@ -89,31 +86,204 @@ public class Memory {
         };
     }
 
-    public byte getByte(short address) {
-        // todo for testing only
-        if (address == (short) 0xFF44) {
-            return (byte) 0x90;
-        }
-        doMCycle();
-        return memory[GameBoyUtil.zeroExtendShort(address)];
+    private void memorySetup(byte[] cartridge) {
+        sysClock = 0;
+        oldEnabled = 0; // todo idk if this is right
+        requestTimerInterrupt = false;
+
+        ramEnabled = false;
+        currRomBank = 1; // todo?
+        currRamBank = 0; // todo?
+        isRamMode = false;
+
+        fixedRom = new byte[Constants.kb16];
+        System.arraycopy(cartridge, 0, fixedRom, 0, Constants.kb16);
+
+        switchableRom = new byte[Constants.kb16 * (romBanks - 1)];
+        System.arraycopy(cartridge, Constants.kb16, switchableRom, 0, Constants.kb16 * (romBanks - 1));
+
+        vram = new byte[Constants.kb8];
+        cartridgeRam = new byte[Constants.kb8 * (ramBanks)];
+        consoleRam = new byte[Constants.kb8];
+        oam = new byte[0xA0];
+        ioRegisters = new byte[0x80];
+        hram = new byte[0x7F];
+        ieRegister = (byte) 0;
     }
 
-    // todo there are other sections of memory that have special behavior too
-    public void setByte(byte value, short address) {
-        if (address == DIV_ADDRESS) {
-            // writing any value to DIV sets it to 0
-            sysClock = (short) 0;
-            memory[GameBoyUtil.zeroExtendShort(address)] = (byte) 0;
-        } else if (address == TIMA_ADDRESS) {
-            // abort timer interrupt and TMA reload
-            requestTimerInterrupt = false;
-            memory[GameBoyUtil.zeroExtendShort(address)] = value;
+    public byte getByte(short address) {
+        byte retVal;
+        // todo zero extend short is needed, otherwise could interpret as negative!
+        if (GameBoyUtil.zeroExtendShort(Constants.FIXED_ROM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.FIXED_ROM_END_ADDRESS)) {
+
+            retVal = fixedRom[GameBoyUtil.zeroExtendShort(address)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.SWITCHABLE_ROM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.SWITCHABLE_ROM_END_ADDRESS)) {
+
+            retVal = switchableRom[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.SWITCHABLE_ROM_START_ADDRESS) +
+                    (currRomBank - 1) * Constants.kb16];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.VRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.VRAM_END_ADDRESS)) {
+
+            retVal = vram[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.VRAM_START_ADDRESS)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_END_ADDRESS)) {
+
+            if (ramEnabled) {
+                retVal = cartridgeRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_START_ADDRESS) +
+                        currRamBank * Constants.kb8];
+            } else {
+                retVal = (byte) 0xFF; // technically not guaranteed to return this
+            }
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_END_ADDRESS)) {
+
+            retVal = consoleRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_START_ADDRESS)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_END_ADDRESS)) {
+
+            // todo technically this is prohibited so I could return an exception
+            retVal = consoleRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_START_ADDRESS)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.OAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.OAM_END_ADDRESS)) {
+
+            // todo placeholder for now
+            retVal = oam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.OAM_START_ADDRESS)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_END_ADDRESS)) {
+
+            // todo for testing only
+            if (address == (short) 0xFF44) {
+                retVal =  (byte) 0x90;
+            } else {
+                retVal = ioRegisters[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS)];
+            }
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.HRAM_END_ADDRESS)) {
+
+            retVal = hram[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS)];
+
+        } else if (Constants.IE_ADDRESS == address) {
+            retVal = ieRegister;
         } else {
-            memory[GameBoyUtil.zeroExtendShort(address)] = value;
+            // unusuable or out of bounds
+            // todo I think unusable area actually returns an a value, but probably don't need to implement.
+            throw new MemoryException("called getByte on not usable, or out of bounds address space: " +
+                    GameBoyUtil.zeroExtendShort(address));
+        }
+
+        doMCycle();
+        return retVal;
+    }
+
+    public void setByte(byte value, short address) {
+        if (GameBoyUtil.zeroExtendShort(Constants.FIXED_ROM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.SWITCHABLE_ROM_END_ADDRESS)) {
+
+            setMBC1Registers(value, address);
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.VRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.VRAM_END_ADDRESS)) {
+
+            vram[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.VRAM_START_ADDRESS)] = value;
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_END_ADDRESS)) {
+
+            if (ramEnabled) {
+                cartridgeRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_START_ADDRESS) +
+                        currRamBank * Constants.kb8] = value;
+            }
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_END_ADDRESS)) {
+
+            consoleRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_START_ADDRESS)] = value;
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_END_ADDRESS)) {
+
+            consoleRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_START_ADDRESS)] = value;
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.OAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.OAM_END_ADDRESS)) {
+
+            // todo, placeholder for now
+            oam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.OAM_START_ADDRESS)] = value;
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_END_ADDRESS)) {
+
+            setByteIORegister(value, address);
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.HRAM_END_ADDRESS)) {
+
+            hram[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS)] = value;
+
+        } else if (Constants.IE_ADDRESS == address) {
+            ieRegister = value;
+        } else {
+            // unusuable or out of bounds
+            throw new MemoryException("called setByte on not usable, or out of bounds address space: " +
+                    GameBoyUtil.zeroExtendShort(address));
         }
         doMCycle();
         // todo for testing only
         printSerialOutput();
+    }
+
+    private void setMBC1Registers(byte value, short address) {
+        if (GameBoyUtil.zeroExtendShort(Constants.RAM_ENABLE_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.RAM_ENABLE_END_ADDRESS)) {
+            ramEnabled = GameBoyUtil.getNibble(true, value) == 0xA;
+        } else if (GameBoyUtil.zeroExtendShort(Constants.ROM_BANK_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.ROM_BANK_END_ADDRESS)) {
+            // todo I'm pretty sure this handles the 0x20, 0x40, and 0x60 translation, but make sure
+            byte fiveBitValue = (byte) (value & 0b00011111);
+            if (fiveBitValue == (byte) 0) {
+                fiveBitValue = (byte) 1;
+            }
+            currRomBank = currRomBank & 0b1100000;
+            currRomBank = currRomBank | fiveBitValue;
+        } else if (GameBoyUtil.zeroExtendShort(Constants.RAM_BANK_OR_UPPER_ROM_BANK_BIT_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.RAM_BANK_OR_UPPER_ROM_BANK_BIT_END_ADDRESS)) {
+            byte twoBitValue = (byte) (value & 0b00000011);
+            if (isRamMode) {
+                currRamBank = twoBitValue;
+            } else {
+                currRomBank = currRomBank & 0b0011111;
+                currRomBank = currRomBank | (twoBitValue << 5);
+            }
+        } else {
+            isRamMode = GameBoyUtil.getBitFromPosInByte(value, 0) == 1;
+            if (!isRamMode) {
+                currRamBank = 0;
+            }
+        }
+    }
+
+    private void setByteIORegister(byte value, short address) {
+        if (address == Constants.DIV_ADDRESS) {
+            // writing any value to DIV sets it to 0
+            sysClock = (short) 0;
+            ioRegisters[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS)] = (byte) 0;
+        } else if (address == Constants.TIMA_ADDRESS) {
+            // abort timer interrupt and TMA reload
+            requestTimerInterrupt = false;
+            ioRegisters[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS)] = value;
+        } else {
+            ioRegisters[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS)] = value;
+        }
     }
 
     // todo this really belongs in CPU, but that may require refactoring. actually maybe not, idk
@@ -128,22 +298,22 @@ public class Memory {
     public void doMCycle() {
         if (requestTimerInterrupt) {
             requestTimerInterrupt = false;
-            memory[GameBoyUtil.zeroExtendShort(TIMA_ADDRESS)] = memory[GameBoyUtil.zeroExtendShort(TMA_ADDRESS)]; // reload TMA value
+            setByteNoTick(getByteNoTick(Constants.TMA_ADDRESS), Constants.TIMA_ADDRESS); // reload TMA value
             // request timer interrupt
-            byte b = getByte(IF_ADDRESS);
-            b = GameBoyUtil.modifyBitOnPosInByte(b,TIMER, 1);
-            setByte(b, IF_ADDRESS);
+            byte b = getByteNoTick(Constants.IF_ADDRESS);
+            b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.TIMER, 1);
+            setByteNoTick(b, Constants.IF_ADDRESS);
 
             // do this to guarantee TIMA won't be incremented this cycle
             oldEnabled = 0;
         }
         short oldSysClock = sysClock;
         sysClock = (short) (sysClock + 4); // increments once every T cycle, so 4 every M cycle
-        // since tick is called in getByte, we need to use memory array directly instead.
-        memory[GameBoyUtil.zeroExtendShort(DIV_ADDRESS)] = GameBoyUtil.getByteFromShort(false, sysClock);
+        // since tick is called in setByte, we need to use setByteNoTick
+        setByteNoTick(GameBoyUtil.getByteFromShort(false, sysClock), Constants.DIV_ADDRESS);
 
-        byte tima =  memory[GameBoyUtil.zeroExtendShort(TIMA_ADDRESS)];
-        byte tac =  memory[GameBoyUtil.zeroExtendShort(TAC_ADDRESS)];
+        byte tima = getByteNoTick(Constants.TIMA_ADDRESS);
+        byte tac = getByteNoTick(Constants.TAC_ADDRESS);
 
         int enable = GameBoyUtil.getBitFromPosInByte(tac, 2);
         int clockSelect = GameBoyUtil.get2BitValue(
@@ -168,7 +338,7 @@ public class Memory {
         }
 
         oldEnabled = enable;
-        memory[GameBoyUtil.zeroExtendShort(TIMA_ADDRESS)] = tima;
+        setByteNoTick(tima, Constants.TIMA_ADDRESS);
     }
 
 
@@ -179,8 +349,8 @@ public class Memory {
      */
     public Queue<Integer> getPendingInterrupts() {
         Queue<Integer> pendingInterrupts = new PriorityQueue<>();
-        byte andResult = (byte) (getByte(IE_ADDRESS) & getByte(IF_ADDRESS));
-        for (int i = VBLANK; i <= JOYPAD; i++) {
+        byte andResult = (byte) (getByte(Constants.IE_ADDRESS) & getByte(Constants.IF_ADDRESS));
+        for (int i = Constants.VBLANK; i <= Constants.JOYPAD; i++) {
             if (GameBoyUtil.getBitFromPosInByte(andResult, i) == 1) {
                 pendingInterrupts.add(i);
             }
@@ -192,7 +362,7 @@ public class Memory {
      * @return the IE register. This does NOT consume an m-cycle.
      */
     public byte getIERegister() {
-        return memory[GameBoyUtil.zeroExtendShort(IE_ADDRESS)];
+        return ieRegister;
     }
 
     // todo these cause m-cycle to pass - is this OK??? - are these even being used????
@@ -202,8 +372,8 @@ public class Memory {
      * This represents the joypad bit of the IE register.
      */
     public int getJoypadIE(){
-        byte b = getByte(IE_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, JOYPAD);
+        byte b = getByte(Constants.IE_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.JOYPAD);
     }
 
     /**
@@ -211,9 +381,9 @@ public class Memory {
      * This represents the joypad bit of the IE register.
      */
     public void setJoypadIE(int jp) {
-        byte b = getByte(IE_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,JOYPAD, jp);
-        setByte(b, IE_ADDRESS);
+        byte b = getByte(Constants.IE_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.JOYPAD, jp);
+        setByte(b, Constants.IE_ADDRESS);
     }
 
     /**
@@ -221,8 +391,8 @@ public class Memory {
      * This represents the serial bit of the IE register.
      */
     public int getSerialIE(){
-        byte b = getByte(IE_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, SERIAL);
+        byte b = getByte(Constants.IE_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.SERIAL);
     }
 
     /**
@@ -230,9 +400,9 @@ public class Memory {
      * This represents the serial bit of the IE register.
      */
     public void setSerialIE(int serial) {
-        byte b = getByte(IE_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,SERIAL, serial);
-        setByte(b, IE_ADDRESS);
+        byte b = getByte(Constants.IE_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.SERIAL, serial);
+        setByte(b, Constants.IE_ADDRESS);
     }
 
     /**
@@ -240,8 +410,8 @@ public class Memory {
      * This represents the timer bit of the IE register.
      */
     public int getTimerIE(){
-        byte b = getByte(IE_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, TIMER);
+        byte b = getByte(Constants.IE_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.TIMER);
     }
 
     /**
@@ -249,9 +419,9 @@ public class Memory {
      * This represents the timer bit of the IE register.
      */
     public void setTimerIE(int timer) {
-        byte b = getByte(IE_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,TIMER, timer);
-        setByte(b, IE_ADDRESS);
+        byte b = getByte(Constants.IE_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.TIMER, timer);
+        setByte(b, Constants.IE_ADDRESS);
     }
 
     /**
@@ -259,8 +429,8 @@ public class Memory {
      * This represents the LCD bit of the IE register.
      */
     public int getLcdIE(){
-        byte b = getByte(IE_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, LCD);
+        byte b = getByte(Constants.IE_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.LCD);
     }
 
     /**
@@ -268,9 +438,9 @@ public class Memory {
      * This represents the LCD bit of the IE register.
      */
     public void setLcdIE(int lcd) {
-        byte b = getByte(IE_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,LCD, lcd);
-        setByte(b, IE_ADDRESS);
+        byte b = getByte(Constants.IE_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.LCD, lcd);
+        setByte(b, Constants.IE_ADDRESS);
     }
 
     /**
@@ -278,8 +448,8 @@ public class Memory {
      * This represents the VBlank bit of the IE register.
      */
     public int getVBlankIE(){
-        byte b = getByte(IE_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, VBLANK);
+        byte b = getByte(Constants.IE_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.VBLANK);
     }
 
     /**
@@ -287,9 +457,9 @@ public class Memory {
      * This represents the VBlank bit of the IE register.
      */
     public void setVBlankIE(int vblank) {
-        byte b = getByte(IE_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,VBLANK, vblank);
-        setByte(b, IE_ADDRESS);
+        byte b = getByte(Constants.IE_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.VBLANK, vblank);
+        setByte(b, Constants.IE_ADDRESS);
     }
 
     /**
@@ -297,8 +467,8 @@ public class Memory {
      * This represents the joypad bit of the IF register.
      */
     public int getJoypadIF(){
-        byte b = getByte(IF_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, JOYPAD);
+        byte b = getByte(Constants.IF_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.JOYPAD);
     }
 
     /**
@@ -306,9 +476,9 @@ public class Memory {
      * This represents the joypad bit of the IF register.
      */
     public void setJoypadIF(int jp) {
-        byte b = getByte(IF_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,JOYPAD, jp);
-        setByte(b, IF_ADDRESS);
+        byte b = getByte(Constants.IF_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.JOYPAD, jp);
+        setByte(b, Constants.IF_ADDRESS);
     }
 
     /**
@@ -316,8 +486,8 @@ public class Memory {
      * This represents the serial bit of the IE register.
      */
     public int getSerialIF(){
-        byte b = getByte(IF_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, SERIAL);
+        byte b = getByte(Constants.IF_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.SERIAL);
     }
 
     /**
@@ -325,9 +495,9 @@ public class Memory {
      * This represents the serial bit of the IF register.
      */
     public void setSerialIF(int serial) {
-        byte b = getByte(IF_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,SERIAL, serial);
-        setByte(b, IF_ADDRESS);
+        byte b = getByte(Constants.IF_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.SERIAL, serial);
+        setByte(b, Constants.IF_ADDRESS);
     }
 
     /**
@@ -335,8 +505,8 @@ public class Memory {
      * This represents the timer bit of the IF register.
      */
     public int getTimerIF(){
-        byte b = getByte(IF_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, TIMER);
+        byte b = getByte(Constants.IF_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.TIMER);
     }
 
     /**
@@ -344,9 +514,9 @@ public class Memory {
      * This represents the timer bit of the IF register.
      */
     public void setTimerIF(int timer) {
-        byte b = getByte(IF_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,TIMER, timer);
-        setByte(b, IF_ADDRESS);
+        byte b = getByte(Constants.IF_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.TIMER, timer);
+        setByte(b, Constants.IF_ADDRESS);
     }
 
     /**
@@ -354,8 +524,8 @@ public class Memory {
      * This represents the LCD bit of the IF register.
      */
     public int getLcdIF(){
-        byte b = getByte(IF_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, LCD);
+        byte b = getByte(Constants.IF_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.LCD);
     }
 
     /**
@@ -363,9 +533,9 @@ public class Memory {
      * This represents the LCD bit of the IF register.
      */
     public void setLcdIF(int lcd) {
-        byte b = getByte(IF_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,LCD, lcd);
-        setByte(b, IF_ADDRESS);
+        byte b = getByte(Constants.IF_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.LCD, lcd);
+        setByte(b, Constants.IF_ADDRESS);
     }
 
     /**
@@ -373,8 +543,8 @@ public class Memory {
      * This represents the VBlank bit of the IF register.
      */
     public int getVBlankIF(){
-        byte b = getByte(IF_ADDRESS);
-        return GameBoyUtil.getBitFromPosInByte(b, VBLANK);
+        byte b = getByte(Constants.IF_ADDRESS);
+        return GameBoyUtil.getBitFromPosInByte(b, Constants.VBLANK);
     }
 
     /**
@@ -382,27 +552,148 @@ public class Memory {
      * This represents the VBlank bit of the IF register.
      */
     public void setVBlankIF(int vblank) {
-        byte b = getByte(IF_ADDRESS);
-        b = GameBoyUtil.modifyBitOnPosInByte(b,VBLANK, vblank);
-        setByte(b, IF_ADDRESS);
+        byte b = getByte(Constants.IF_ADDRESS);
+        b = GameBoyUtil.modifyBitOnPosInByte(b, Constants.VBLANK, vblank);
+        setByte(b, Constants.IF_ADDRESS);
     }
 
     // todo for testing purposes, probably remove later
     public void printSerialOutput() {
-        if (memory[GameBoyUtil.zeroExtendShort((short) 0xff02)] == (byte) 0x81) {
-            byte b = memory[GameBoyUtil.zeroExtendShort((short) 0xff01)];
+        if (getByteNoTick((short) 0xff02) == (byte) 0x81) {
+            byte b = getByteNoTick((short) 0xff01);
             char c = (char) GameBoyUtil.zeroExtendByte(b);
             System.out.println(c);
-            memory[GameBoyUtil.zeroExtendShort((short) 0xff02)] = (byte) 0;
+            setByteNoTick((byte) 0, (short) 0xff02);
         }
     }
 
-    // todo for testing purposes, probably remove later
+    // todo for testing purposes, probably remove later (some of my actual methods use this, so need to come up with better way to do this)
     public byte getByteNoTick(short address) {
-        // todo for testing purposes only
-        if (address == (short) 0xFF44) {
-            return (byte) 0x90;
+        byte retVal;
+        if (GameBoyUtil.zeroExtendShort(Constants.FIXED_ROM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.FIXED_ROM_END_ADDRESS)) {
+
+            retVal = fixedRom[GameBoyUtil.zeroExtendShort(address)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.SWITCHABLE_ROM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.SWITCHABLE_ROM_END_ADDRESS)) {
+
+            retVal = switchableRom[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.SWITCHABLE_ROM_START_ADDRESS) +
+                    (currRomBank - 1) * Constants.kb16];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.VRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.VRAM_END_ADDRESS)) {
+
+            retVal = vram[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.VRAM_START_ADDRESS)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_END_ADDRESS)) {
+
+            if (ramEnabled) {
+                retVal = cartridgeRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_START_ADDRESS) +
+                        currRamBank * Constants.kb8];
+            } else {
+                retVal = (byte) 0xFF; // technically not guaranteed to return this
+            }
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_END_ADDRESS)) {
+
+            retVal = consoleRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_START_ADDRESS)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_END_ADDRESS)) {
+
+            // todo technically this is prohibited so I could return an exception
+            retVal = consoleRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_START_ADDRESS)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.OAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.OAM_END_ADDRESS)) {
+
+            // todo placeholder for now
+            retVal = oam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.OAM_START_ADDRESS)];
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_END_ADDRESS)) {
+
+            // todo for testing only
+            if (address == (short) 0xFF44) {
+                retVal =  (byte) 0x90;
+            } else {
+                retVal = ioRegisters[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS)];
+            }
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.HRAM_END_ADDRESS)) {
+
+            retVal = hram[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS)];
+
+        } else if (Constants.IE_ADDRESS == address) {
+            retVal = ieRegister;
+        } else {
+            // unusuable or out of bounds
+            // todo I think unusable area actually returns an a value, but probably don't need to implement.
+            throw new MemoryException("called getByte on not usable, or out of bounds address space: " +
+                    GameBoyUtil.zeroExtendShort(address));
         }
-        return memory[GameBoyUtil.zeroExtendShort(address)];
+
+        return retVal;
+    }
+
+    // todo for testing purposes, probably remove later, need to come up with better way to do this
+    public void setByteNoTick(byte value, short address) {
+        if (GameBoyUtil.zeroExtendShort(Constants.FIXED_ROM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.SWITCHABLE_ROM_END_ADDRESS)) {
+
+            setMBC1Registers(value, address);
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.VRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.VRAM_END_ADDRESS)) {
+
+            vram[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.VRAM_START_ADDRESS)] = value;
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_END_ADDRESS)) {
+
+            if (ramEnabled) {
+                cartridgeRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.CARTRIDGE_RAM_START_ADDRESS) +
+                        currRamBank * Constants.kb8] = value;
+            }
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_END_ADDRESS)) {
+
+            consoleRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.CONSOLE_RAM_START_ADDRESS)] = value;
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_END_ADDRESS)) {
+
+            consoleRam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.ECHO_RAM_START_ADDRESS)] = value;
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.OAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.OAM_END_ADDRESS)) {
+
+            // todo, placeholder for now
+            oam[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.OAM_START_ADDRESS)] = value;
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_END_ADDRESS)) {
+
+            setByteIORegister(value, address);
+
+        } else if (GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
+                GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.HRAM_END_ADDRESS)) {
+
+            hram[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS)] = value;
+
+        } else if (Constants.IE_ADDRESS == address) {
+            ieRegister = value;
+        } else {
+            // unusuable or out of bounds
+            throw new MemoryException("called setByte on not usable, or out of bounds address space: " +
+                    GameBoyUtil.zeroExtendShort(address));
+        }
+        // todo for testing only
+        printSerialOutput();
     }
 }

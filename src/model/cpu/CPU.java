@@ -2,6 +2,7 @@ package model.cpu;
 
 import model.cpu.execution.*;
 import model.memory.Memory;
+import util.Constants;
 import util.GameBoyUtil;
 import exception.CPUException;
 
@@ -124,9 +125,9 @@ public class CPU {
         memory = new Memory();
     }
 
-    public CPU (byte[] rom) {
+    public CPU (byte[] cartridge) {
         cpuSetup();
-        memory = new Memory(rom);
+        memory = new Memory(cartridge);
     }
 
     /**
@@ -384,9 +385,9 @@ public class CPU {
      */
     private void serviceInterrupt(int interrupt) {
         setIME(0);
-        byte ifRegister = memory.getByte(Memory.IF_ADDRESS);
+        byte ifRegister = memory.getByte(Constants.IF_ADDRESS);
         ifRegister = GameBoyUtil.modifyBitOnPosInByte(ifRegister, interrupt, 0);
-        memory.setByte(ifRegister, Memory.IF_ADDRESS);
+        memory.setByte(ifRegister, Constants.IF_ADDRESS);
 
         byte pc_lsb = GameBoyUtil.getByteFromShort(true, pc);
         byte pc_msb = GameBoyUtil.getByteFromShort(false, pc);
@@ -397,11 +398,11 @@ public class CPU {
         memory.setByte(pc_lsb, sp);
 
         pc = switch(interrupt) {
-            case Memory.VBLANK -> Memory.VBLANK_HANDLER_ADDRESS;
-            case Memory.LCD -> Memory.LCD_HANDLER_ADDRESS;
-            case Memory.TIMER -> Memory.TIMER_HANDLER_ADDRESS;
-            case Memory.SERIAL -> Memory.SERIAL_HANDLER_ADDRESS;
-            default -> Memory.JOYPAD_HANDLER_ADDRESS;
+            case Constants.VBLANK -> Constants.VBLANK_HANDLER_ADDRESS;
+            case Constants.LCD -> Constants.LCD_HANDLER_ADDRESS;
+            case Constants.TIMER -> Constants.TIMER_HANDLER_ADDRESS;
+            case Constants.SERIAL -> Constants.SERIAL_HANDLER_ADDRESS;
+            default -> Constants.JOYPAD_HANDLER_ADDRESS;
         };
         memory.doMCycle();
     }

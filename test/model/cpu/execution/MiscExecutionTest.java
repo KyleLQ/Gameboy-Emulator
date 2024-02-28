@@ -1,9 +1,9 @@
 package model.cpu.execution;
 
 import model.cpu.CPU;
-import model.memory.Memory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import util.Constants;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -129,8 +129,8 @@ public class MiscExecutionTest {
         cpu.doInstructionCycle(); // DI
         cpu.doInstructionCycle(); // HALT
 
-        cpu.getMemory().setByte((byte) 0b00010001, Memory.IF_ADDRESS); // give pending interrupts
-        cpu.getMemory().setByte((byte) 0b00010001, Memory.IE_ADDRESS);
+        cpu.getMemory().setByte((byte) 0b00010001, Constants.IF_ADDRESS); // give pending interrupts
+        cpu.getMemory().setByte((byte) 0b00010001, Constants.IE_ADDRESS);
 
         cpu.doInstructionCycle(); // NOP
 
@@ -172,11 +172,11 @@ public class MiscExecutionTest {
         cpu.getMemory().setByte(nopInstruction, (short) (startAddress + 1));
         cpu.getMemory().setByte(haltInstruction, (short) (startAddress + 2));
 
-        cpu.getMemory().setByte(inc_bInstruction, Memory.VBLANK_HANDLER_ADDRESS);
-        cpu.getMemory().setByte(retiInstruction, (short) (Memory.VBLANK_HANDLER_ADDRESS + 1));
+        cpu.getMemory().setByte(inc_bInstruction, Constants.VBLANK_HANDLER_ADDRESS);
+        cpu.getMemory().setByte(retiInstruction, (short) (Constants.VBLANK_HANDLER_ADDRESS + 1));
 
-        cpu.getMemory().setByte(add_b_to_aInstruction, Memory.JOYPAD_HANDLER_ADDRESS);
-        cpu.getMemory().setByte(retiInstruction, (short) (Memory.JOYPAD_HANDLER_ADDRESS + 1));
+        cpu.getMemory().setByte(add_b_to_aInstruction, Constants.JOYPAD_HANDLER_ADDRESS);
+        cpu.getMemory().setByte(retiInstruction, (short) (Constants.JOYPAD_HANDLER_ADDRESS + 1));
 
         cpu.setProgramCounter(startAddress);
         cpu.setStackPointer((short) 0xFFFE);
@@ -187,8 +187,8 @@ public class MiscExecutionTest {
         cpu.doInstructionCycle(); // NOP
         cpu.doInstructionCycle(); // HALT
 
-        cpu.getMemory().setByte((byte) 0b00010011, Memory.IF_ADDRESS); // pending interrupts
-        cpu.getMemory().setByte((byte) 0b00010001, Memory.IE_ADDRESS);
+        cpu.getMemory().setByte((byte) 0b00010011, Constants.IF_ADDRESS); // pending interrupts
+        cpu.getMemory().setByte((byte) 0b00010001, Constants.IE_ADDRESS);
 
         cpu.doInstructionCycle(); // INC b (start VBLANK interrupt)
         cpu.doInstructionCycle(); // RETI

@@ -1,10 +1,10 @@
 package model.cpu;
 
 import exception.CPUException;
-import model.memory.Memory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import testutil.TestUtil;
+import util.Constants;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -104,19 +104,19 @@ public class CPUTest {
         cpu.getMemory().setByte(eiInstruction, startAddress);
         cpu.getMemory().setByte(nopInstruction, (short) (startAddress + 1));
 
-        cpu.getMemory().setByte(inc_bInstruction, Memory.VBLANK_HANDLER_ADDRESS);
-        cpu.getMemory().setByte(retiInstruction, (short) (Memory.VBLANK_HANDLER_ADDRESS + 1));
+        cpu.getMemory().setByte(inc_bInstruction, Constants.VBLANK_HANDLER_ADDRESS);
+        cpu.getMemory().setByte(retiInstruction, (short) (Constants.VBLANK_HANDLER_ADDRESS + 1));
 
-        cpu.getMemory().setByte(add_b_to_aInstruction, Memory.JOYPAD_HANDLER_ADDRESS);
-        cpu.getMemory().setByte(retiInstruction, (short) (Memory.JOYPAD_HANDLER_ADDRESS + 1));
+        cpu.getMemory().setByte(add_b_to_aInstruction, Constants.JOYPAD_HANDLER_ADDRESS);
+        cpu.getMemory().setByte(retiInstruction, (short) (Constants.JOYPAD_HANDLER_ADDRESS + 1));
 
         cpu.setProgramCounter(startAddress);
         cpu.setStackPointer((short) 0xFFFE);
         cpu.setRa((byte) 3);
         cpu.setRb((byte) 5);
 
-        cpu.getMemory().setByte((byte) 0b00010011, Memory.IF_ADDRESS);
-        cpu.getMemory().setByte((byte) 0b00010001, Memory.IE_ADDRESS);
+        cpu.getMemory().setByte((byte) 0b00010011, Constants.IF_ADDRESS);
+        cpu.getMemory().setByte((byte) 0b00010001, Constants.IE_ADDRESS);
 
         cpu.doInstructionCycle(); // EI
         cpu.doInstructionCycle(); // NOP

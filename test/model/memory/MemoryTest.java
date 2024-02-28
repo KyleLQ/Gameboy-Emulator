@@ -3,6 +3,7 @@ package model.memory;
 import model.cpu.CPU;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import util.Constants;
 
 import java.util.Queue;
 
@@ -19,7 +20,7 @@ public class MemoryTest {
     @Test
     public void testIERegister() {
         byte ie = (byte) 0b10101010;
-        cpu.getMemory().setByte(ie, Memory.IE_ADDRESS);
+        cpu.getMemory().setByte(ie, Constants.IE_ADDRESS);
         assertEquals(0, cpu.getMemory().getJoypadIE());
         assertEquals(1, cpu.getMemory().getSerialIE());
         assertEquals(0, cpu.getMemory().getTimerIE());
@@ -42,7 +43,7 @@ public class MemoryTest {
     @Test
     public void testIFRegister() {
         byte IF = (byte) 0b10101010;
-        cpu.getMemory().setByte(IF, Memory.IF_ADDRESS);
+        cpu.getMemory().setByte(IF, Constants.IF_ADDRESS);
         assertEquals(0, cpu.getMemory().getJoypadIF());
         assertEquals(1, cpu.getMemory().getSerialIF());
         assertEquals(0, cpu.getMemory().getTimerIF());
@@ -66,15 +67,15 @@ public class MemoryTest {
     public void testPendingInterrupts() {
         byte IE = (byte) 0b11110111;
         byte IF = (byte) 0b11110101;
-        cpu.getMemory().setByte(IE, Memory.IE_ADDRESS);
-        cpu.getMemory().setByte(IF, Memory.IF_ADDRESS);
+        cpu.getMemory().setByte(IE, Constants.IE_ADDRESS);
+        cpu.getMemory().setByte(IF, Constants.IF_ADDRESS);
         Queue<Integer> pendingInterrupts = cpu.getMemory().getPendingInterrupts();
         assertEquals(3, pendingInterrupts.size());
-        assertEquals(Memory.VBLANK, pendingInterrupts.poll());
+        assertEquals(Constants.VBLANK, pendingInterrupts.poll());
         assertEquals(2, pendingInterrupts.size());
-        assertEquals(Memory.TIMER, pendingInterrupts.poll());
+        assertEquals(Constants.TIMER, pendingInterrupts.poll());
         assertEquals(1, pendingInterrupts.size());
-        assertEquals(Memory.JOYPAD, pendingInterrupts.poll());
+        assertEquals(Constants.JOYPAD, pendingInterrupts.poll());
         assertEquals(0, pendingInterrupts.size());
     }
 }

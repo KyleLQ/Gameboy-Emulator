@@ -10,7 +10,7 @@ public class main {
     static int i = 1;
     static StringBuilder stringBuilder = new StringBuilder();
     public static void main(String[] args) {
-        String testFile = "roms/gb-test-roms-master/cpu_instrs/cpu_instrs.gb";
+        String testFile = "roms/gb-test-roms-master/cpu_instrs/individual/02-interrupts.gb";
         CPU cpu = new CPU(readFile(testFile));
         while (true) {
             i++;
