@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class GameBoyUtil {
+public class GBUtil {
     public static final int UNSIGNED_SHORT_MAX = 65535;
     public static final int UNSIGNED_12_BIT_MAX = 4095;
     public static final int UNSIGNED_BYTE_MAX = 255;
@@ -61,7 +61,7 @@ public class GameBoyUtil {
      * @param pos the position of the bit in byte b, in [0,7]
      * @return value of bit, in [0,1]
      */
-    public static int getBitFromPosInByte(byte b, int pos) {
+    public static int getBit(byte b, int pos) {
         if (pos < 0 || pos > 7) {
             throw new CPUException("pos is out of range!");
         }
@@ -77,13 +77,13 @@ public class GameBoyUtil {
      * @param pos the position of the bit in short s, in [0, 15]
      * @return value of bit, in [0,1]
      */
-    public static int getBitFromPosInShort(short s, int pos) {
+    public static int getBit(short s, int pos) {
         if (pos < 0 || pos > 15) {
             throw new CPUException("pos is out of range!");
         } else if (pos < 8) {
-            return getBitFromPosInByte(getByteFromShort(true, s), pos);
+            return getBit(getByteFromShort(true, s), pos);
         } else {
-            return getBitFromPosInByte(getByteFromShort(false, s), pos - 8);
+            return getBit(getByteFromShort(false, s), pos - 8);
         }
     }
 
@@ -93,7 +93,7 @@ public class GameBoyUtil {
      * @param bit the value to modify b[pos] to, 0 or 1
      * @return byte b, but with b[pos] modified to bit's value
      */
-    public static byte modifyBitOnPosInByte(byte b, int pos, int bit) {
+    public static byte modifyBit(byte b, int pos, int bit) {
         if (pos < 0 || pos > 7) {
             throw new CPUException("pos is out of range!");
         }
@@ -136,11 +136,11 @@ public class GameBoyUtil {
      */
     public static int getNibble(boolean lower, byte b) {
         if (lower) {
-            return getBitFromPosInByte(b, 3) * 8 + getBitFromPosInByte(b, 2) * 4 +
-                    getBitFromPosInByte(b, 1) * 2 + getBitFromPosInByte(b, 0);
+            return getBit(b, 3) * 8 + getBit(b, 2) * 4 +
+                    getBit(b, 1) * 2 + getBit(b, 0);
         } else {
-            return getBitFromPosInByte(b, 7) * 8 + getBitFromPosInByte(b, 6) * 4 +
-                    getBitFromPosInByte(b, 5) * 2 + getBitFromPosInByte(b, 4);
+            return getBit(b, 7) * 8 + getBit(b, 6) * 4 +
+                    getBit(b, 5) * 2 + getBit(b, 4);
         }
     }
 
@@ -148,7 +148,7 @@ public class GameBoyUtil {
      * @param b the byte to zero extend
      * @return byte b zero extended to become an int
      */
-    public static int zeroExtendByte(byte b) {
+    public static int zeroExtend(byte b) {
         return ((int) b) & 0x000000ff;
     }
 
@@ -156,7 +156,7 @@ public class GameBoyUtil {
      * @param s the short to zero extend
      * @return short s extended to become an int
      */
-    public static int zeroExtendShort(short s) {
+    public static int zeroExtend(short s) {
         return ((int) s) & 0x0000ffff;
     }
 
@@ -167,7 +167,7 @@ public class GameBoyUtil {
      */
     public static String convertByteToBinaryString(byte b) {
         return String.format("%8s",
-                        Integer.toBinaryString(GameBoyUtil.zeroExtendByte(b))).replace(' ', '0');
+                        Integer.toBinaryString(GBUtil.zeroExtend(b))).replace(' ', '0');
     }
 
     /**
@@ -176,7 +176,7 @@ public class GameBoyUtil {
      * @return a short constructed from lsb and msb
      */
     public static Short getShortFromBytes(byte lsb, byte msb) {
-        return (short) (zeroExtendByte(lsb) + (zeroExtendByte(msb) << 8));
+        return (short) (zeroExtend(lsb) + (zeroExtend(msb) << 8));
     }
 
     /**

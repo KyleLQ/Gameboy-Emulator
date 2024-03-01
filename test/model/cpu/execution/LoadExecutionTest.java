@@ -4,7 +4,7 @@ import model.cpu.CPU;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import testutil.TestUtil;
-import util.GameBoyUtil;
+import util.GBUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -177,7 +177,7 @@ public class LoadExecutionTest {
         cpu.getMemory().setByte(instruction, startAddress);
         cpu.getMemory().setByte(u8, (short) (startAddress + 1));
         cpu.setProgramCounter(startAddress);
-        cpu.getMemory().setByte(memoryVal, GameBoyUtil.getShortFromBytes(u8, (byte) 0xFF));
+        cpu.getMemory().setByte(memoryVal, GBUtil.getShortFromBytes(u8, (byte) 0xFF));
 
         System.out.println("Ld A, (FF00 + u8), (FF00 + u8) = " + TestUtil.convertToHexString(memoryVal));
         cpu.doInstructionCycle();
@@ -214,7 +214,7 @@ public class LoadExecutionTest {
 
         cpu.getMemory().setByte(instruction, startAddress);
         cpu.setProgramCounter(startAddress);
-        cpu.getMemory().setByte(memoryVal, GameBoyUtil.getShortFromBytes(c, (byte) 0xFF));
+        cpu.getMemory().setByte(memoryVal, GBUtil.getShortFromBytes(c, (byte) 0xFF));
         cpu.setRc(c);
 
         System.out.println("Ld A, (FF00 + C), (FF00 + C) = " + TestUtil.convertToHexString(memoryVal) +

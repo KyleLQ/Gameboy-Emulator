@@ -1,6 +1,6 @@
 package testutil;
 
-import util.GameBoyUtil;
+import util.GBUtil;
 
 public class TestUtil {
 
@@ -16,21 +16,21 @@ public class TestUtil {
      */
     public static String convertByteToBinaryString(Byte b) {
         return "0b" +
-                String.format("%8s", Integer.toBinaryString(GameBoyUtil.zeroExtendByte(b))).replace(' ', '0');
+                String.format("%8s", Integer.toBinaryString(GBUtil.zeroExtend(b))).replace(' ', '0');
     }
 
     /**
      * @return b as a string in unsigned base 10
      */
     public static String convertByteToUnsignedString(Byte b) {
-        return Integer.toString(GameBoyUtil.zeroExtendByte(b));
+        return Integer.toString(GBUtil.zeroExtend(b));
     }
 
     /**
      * @return s as a string in unsigned base 10
      */
     public static String convertShortToUnsignedString(Short s) {
-        return Integer.toString(GameBoyUtil.zeroExtendShort(s));
+        return Integer.toString(GBUtil.zeroExtend(s));
     }
 
 

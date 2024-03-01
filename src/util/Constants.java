@@ -1,33 +1,33 @@
 package util;
 
 public class Constants {
-    public static final short FIXED_ROM_START_ADDRESS = (short) 0x0000; // the first address in fixed rom address space
-    public static final short FIXED_ROM_END_ADDRESS = (short) 0x3FFF; // the last address in fixed rom address space
-    public static final short SWITCHABLE_ROM_START_ADDRESS = (short) 0x4000;
-    public static final short SWITCHABLE_ROM_END_ADDRESS = (short) 0x7FFF;
-    public static final short VRAM_START_ADDRESS = (short) 0x8000;
-    public static final short VRAM_END_ADDRESS = (short) 0x9FFF;
-    public static final short CARTRIDGE_RAM_START_ADDRESS = (short) 0xA000;
-    public static final short CARTRIDGE_RAM_END_ADDRESS = (short) 0xBFFF;
-    public static final short CONSOLE_RAM_START_ADDRESS = (short) 0xC000;
-    public static final short CONSOLE_RAM_END_ADDRESS = (short) 0xDFFF;
-    public static final short ECHO_RAM_START_ADDRESS = (short) 0xE000;
-    public static final short ECHO_RAM_END_ADDRESS = (short) 0xFDFF;
-    public static final short OAM_START_ADDRESS = (short) 0xFE00;
-    public static final short OAM_END_ADDRESS = (short) 0xFE9F;
-    public static final short UNUSABLE_START_ADDRESS = (short) 0xFEA0;
-    public static final short UNUSUABLE_END_ADDRESS = (short) 0xFEFF;
-    public static final short IO_REGISTERS_START_ADDRESS = (short) 0xFF00;
-    public static final short IO_REGISTERS_END_ADDRESS = (short) 0xFF7F;
-    public static final short HRAM_START_ADDRESS = (short) 0xFF80;
-    public static final short HRAM_END_ADDRESS = (short) 0xFFFE;
+    public static final short FIXED_ROM_START = (short) 0x0000; // the first address in fixed rom address space
+    public static final short FIXED_ROM_END = (short) 0x3FFF; // the last address in fixed rom address space
+    public static final short SWITCHABLE_ROM_START = (short) 0x4000;
+    public static final short SWITCHABLE_ROM_END = (short) 0x7FFF;
+    public static final short VRAM_START = (short) 0x8000;
+    public static final short VRAM_END = (short) 0x9FFF;
+    public static final short CARTRIDGE_RAM_START = (short) 0xA000;
+    public static final short CARTRIDGE_RAM_END = (short) 0xBFFF;
+    public static final short CONSOLE_RAM_START = (short) 0xC000;
+    public static final short CONSOLE_RAM_END = (short) 0xDFFF;
+    public static final short ECHO_RAM_START = (short) 0xE000;
+    public static final short ECHO_RAM_END = (short) 0xFDFF;
+    public static final short OAM_START = (short) 0xFE00;
+    public static final short OAM_END = (short) 0xFE9F;
+    public static final short UNUSABLE_START = (short) 0xFEA0;
+    public static final short UNUSUABLE_END = (short) 0xFEFF;
+    public static final short IO_REGISTERS_START = (short) 0xFF00;
+    public static final short IO_REGISTERS_END = (short) 0xFF7F;
+    public static final short HRAM_START = (short) 0xFF80;
+    public static final short HRAM_END = (short) 0xFFFE;
     // TODO THESE CONSTANTS ARE WRITTEN ASSUMING MBC1/MBC0 ONLY!
-    public static final short RAM_ENABLE_START_ADDRESS = (short) 0x0000; // write here to enable or disable external ram
-    public static final short RAM_ENABLE_END_ADDRESS = (short) 0x1FFF;
-    public static final short ROM_BANK_START_ADDRESS = (short) 0x2000; // write here to select lower 5 bits of rom bank number
-    public static final short ROM_BANK_END_ADDRESS = (short) 0x3FFF;
-    public static final short ROM_RAM_MODE_SELECT_START_ADDRESS = (short) 0x6000; // write here to select extended ROM or RAM mode
-    public static final short ROM_RAM_MODE_SELECT_END_ADDRESS = (short) 0x7FFF;
+    public static final short RAM_ENABLE_START = (short) 0x0000; // write here to enable or disable external ram
+    public static final short RAM_ENABLE_END = (short) 0x1FFF;
+    public static final short ROM_BANK_START = (short) 0x2000; // write here to select lower 5 bits of rom bank number
+    public static final short ROM_BANK_END = (short) 0x3FFF;
+    public static final short ROM_RAM_MODE_SELECT_START = (short) 0x6000; // write here to select extended ROM or RAM mode
+    public static final short ROM_RAM_MODE_SELECT_END = (short) 0x7FFF;
     public static final short RAM_BANK_OR_UPPER_ROM_BANK_BIT_START_ADDRESS = (short) 0x4000;
     // write here to select upper 2 bits of ROM bank number or RAM bank number
     public static final short RAM_BANK_OR_UPPER_ROM_BANK_BIT_END_ADDRESS = (short) 0x5FFF;

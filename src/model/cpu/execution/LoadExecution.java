@@ -1,14 +1,14 @@
 package model.cpu.execution;
 
 import model.cpu.CPU;
-import util.GameBoyUtil;
+import util.GBUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static util.GameBoyUtil.INSTRUCTION_TO_SET_R16_SP_MAP;
+import static util.GBUtil.INSTRUCTION_TO_SET_R16_SP_MAP;
 
 public class LoadExecution {
 
@@ -53,12 +53,12 @@ public class LoadExecution {
         byte u16_lsb = cpu.getMemory().getByte(pc);
         pc = (short) (pc + 1);
         byte u16_msb = cpu.getMemory().getByte(pc);
-        short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
+        short u16 = GBUtil.getShortFromBytes(u16_lsb, u16_msb);
         cpu.setProgramCounter(pc);
 
         short sp = cpu.getStackPointer();
-        byte sp_lsb = GameBoyUtil.getByteFromShort(true, sp);
-        byte sp_msb = GameBoyUtil.getByteFromShort(false, sp);
+        byte sp_lsb = GBUtil.getByteFromShort(true, sp);
+        byte sp_msb = GBUtil.getByteFromShort(false, sp);
         cpu.getMemory().setByte(sp_lsb, u16);
         cpu.getMemory().setByte(sp_msb, (short) (u16 + 1));
     }
@@ -73,12 +73,12 @@ public class LoadExecution {
         byte u16_lsb = cpu.getMemory().getByte(pc);
         pc = (short) (pc + 1);
         byte u16_msb = cpu.getMemory().getByte(pc);
-        short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
+        short u16 = GBUtil.getShortFromBytes(u16_lsb, u16_msb);
         cpu.setProgramCounter(pc);
 
-        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_SP_MAP.get(GBUtil.get2BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4)
         ));
         setR16.accept(u16, cpu);
     }
@@ -88,9 +88,9 @@ public class LoadExecution {
      * Writes the value in register A to the memory address specified by register r16
      */
     public static void executeLD_Memory_r16_A(byte instruction, CPU cpu) {
-        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_INC_DEC_MAP.get(GameBoyUtil.get2BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_INC_DEC_MAP.get(GBUtil.get2BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4)
         ));
         short address = getR16.apply(cpu);
 
@@ -102,9 +102,9 @@ public class LoadExecution {
      * Reads the byte from the memory address specified by register r16 into register A.
      */
     public static void executeLD_A_Memory_r16(byte instruction, CPU cpu) {
-        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_INC_DEC_MAP.get(GameBoyUtil.get2BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_INC_DEC_MAP.get(GBUtil.get2BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4)
         ));
         short address = getR16.apply(cpu);
         byte value = cpu.getMemory().getByte(address);
@@ -121,10 +121,10 @@ public class LoadExecution {
         byte u8 = cpu.getMemory().getByte(pc);
         cpu.setProgramCounter(pc);
 
-        BiConsumer<Byte, CPU> setR8 = GameBoyUtil.INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                GameBoyUtil.getBitFromPosInByte(instruction, 3)
+        BiConsumer<Byte, CPU> setR8 = GBUtil.INSTRUCTION_TO_SET_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4),
+                GBUtil.getBit(instruction, 3)
         ));
 
         setR8.accept(u8, cpu);
@@ -139,18 +139,18 @@ public class LoadExecution {
             MiscExecution.executeHALT(instruction, cpu);
             return;
         }
-        Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 2),
-                GameBoyUtil.getBitFromPosInByte(instruction, 1),
-                GameBoyUtil.getBitFromPosInByte(instruction, 0)
+        Function<CPU, Byte> getR8 = GBUtil.INSTRUCTION_TO_GET_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 2),
+                GBUtil.getBit(instruction, 1),
+                GBUtil.getBit(instruction, 0)
         ));
 
         byte r8 = getR8.apply(cpu);
 
-        BiConsumer<Byte, CPU> setR8 = GameBoyUtil.INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                GameBoyUtil.getBitFromPosInByte(instruction, 3)
+        BiConsumer<Byte, CPU> setR8 = GBUtil.INSTRUCTION_TO_SET_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4),
+                GBUtil.getBit(instruction, 3)
         ));
 
         setR8.accept(r8, cpu);
@@ -167,7 +167,7 @@ public class LoadExecution {
         byte u8 = cpu.getMemory().getByte(pc);
         cpu.setProgramCounter(pc);
 
-        short address = GameBoyUtil.getShortFromBytes(u8, (byte) 0xFF);
+        short address = GBUtil.getShortFromBytes(u8, (byte) 0xFF);
         byte a = cpu.getRa();
         cpu.getMemory().setByte(a, address);
     }
@@ -182,7 +182,7 @@ public class LoadExecution {
         byte u8 = cpu.getMemory().getByte(pc);
         cpu.setProgramCounter(pc);
 
-        short address = GameBoyUtil.getShortFromBytes(u8, (byte) 0xFF);
+        short address = GBUtil.getShortFromBytes(u8, (byte) 0xFF);
         byte memoryRead = cpu.getMemory().getByte(address);
         cpu.setRa(memoryRead);
     }
@@ -194,7 +194,7 @@ public class LoadExecution {
      */
     public static void executeLD_Memory_FF00_plus_C_A(byte instruction, CPU cpu) {
         byte c = cpu.getRc();
-        short address = GameBoyUtil.getShortFromBytes(c, (byte) 0xFF);
+        short address = GBUtil.getShortFromBytes(c, (byte) 0xFF);
         byte a = cpu.getRa();
         cpu.getMemory().setByte(a, address);
     }
@@ -206,7 +206,7 @@ public class LoadExecution {
      */
     public static void executeLD_A_Memory_FF00_plus_C(byte instruction, CPU cpu) {
         byte c = cpu.getRc();
-        short address = GameBoyUtil.getShortFromBytes(c, (byte) 0xFF);
+        short address = GBUtil.getShortFromBytes(c, (byte) 0xFF);
         byte memoryRead = cpu.getMemory().getByte(address);
         cpu.setRa(memoryRead);
     }
@@ -222,7 +222,7 @@ public class LoadExecution {
         byte u16_msb = cpu.getMemory().getByte(pc);
         cpu.setProgramCounter(pc);
 
-        short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
+        short u16 = GBUtil.getShortFromBytes(u16_lsb, u16_msb);
         byte a = cpu.getRa();
         cpu.getMemory().setByte(a, u16);
     }
@@ -238,7 +238,7 @@ public class LoadExecution {
         byte u16_msb = cpu.getMemory().getByte(pc);
         cpu.setProgramCounter(pc);
 
-        short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
+        short u16 = GBUtil.getShortFromBytes(u16_lsb, u16_msb);
         byte memoryVal = cpu.getMemory().getByte(u16);
         cpu.setRa(memoryVal);
     }
@@ -250,13 +250,13 @@ public class LoadExecution {
      */
     public static void executePUSH_r16(byte instruction, CPU cpu) {
         Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_AF_MAP.get(
-                GameBoyUtil.get2BitValue(
-                        GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 4)));
+                GBUtil.get2BitValue(
+                        GBUtil.getBit(instruction, 5),
+                        GBUtil.getBit(instruction, 4)));
 
         short r16 = getR16.apply(cpu);
-        byte r16_lsb = GameBoyUtil.getByteFromShort(true, r16);
-        byte r16_msb = GameBoyUtil.getByteFromShort(false, r16);
+        byte r16_lsb = GBUtil.getByteFromShort(true, r16);
+        byte r16_msb = GBUtil.getByteFromShort(false, r16);
 
         short sp = cpu.getStackPointer();
         sp = (short) (sp - 1);
@@ -278,12 +278,12 @@ public class LoadExecution {
         byte r16_msb = cpu.getMemory().getByte(sp);
         sp = (short) (sp + 1);
         cpu.setStackPointer(sp);
-        short r16 = GameBoyUtil.getShortFromBytes(r16_lsb, r16_msb);
+        short r16 = GBUtil.getShortFromBytes(r16_lsb, r16_msb);
 
         BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_AF_MAP.get(
-                GameBoyUtil.get2BitValue(
-                        GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 4)));
+                GBUtil.get2BitValue(
+                        GBUtil.getBit(instruction, 5),
+                        GBUtil.getBit(instruction, 4)));
         setR16.accept(r16, cpu);
     }
 }

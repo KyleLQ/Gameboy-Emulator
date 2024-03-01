@@ -3,7 +3,7 @@ package model.cpu;
 import model.cpu.execution.*;
 import model.memory.Memory;
 import util.Constants;
-import util.GameBoyUtil;
+import util.GBUtil;
 import exception.CPUException;
 
 import java.nio.ByteBuffer;
@@ -162,7 +162,7 @@ public class CPU {
 
     // todo this should honestly be private too xd
     public void decodeExecuteInstruction(byte instruction) {
-        String binaryString = GameBoyUtil.convertByteToBinaryString(instruction);
+        String binaryString = GBUtil.convertByteToBinaryString(instruction);
         for (Map.Entry<Pattern, BiConsumer<Byte, CPU>> mapEntry : REGEX_TO_EXECUTION_MAP.entrySet()) {
             if (mapEntry.getKey().matcher(binaryString).find()) {
                mapEntry.getValue().accept(instruction, this);
@@ -175,7 +175,7 @@ public class CPU {
     // todo should be private later if not too much work, public right now for testing purposes
     // this might not even be the right location for this method (BitOpExecution instead?)
     public void decodeExecuteCBInstruction(byte instruction) {
-        String binaryString = GameBoyUtil.convertByteToBinaryString(instruction);
+        String binaryString = GBUtil.convertByteToBinaryString(instruction);
         for (Map.Entry<Pattern, BiConsumer<Byte, CPU>> mapEntry : REGEX_TO_CB_EXECUTION_MAP.entrySet()) {
             if (mapEntry.getKey().matcher(binaryString).find()) {
                 mapEntry.getValue().accept(instruction, this);
@@ -186,7 +186,7 @@ public class CPU {
     }
 
     public int getZeroFlag() {
-        return GameBoyUtil.getBitFromPosInByte(rf, 7);
+        return GBUtil.getBit(rf, 7);
     }
 
     public void setZeroFlag(int z) {
@@ -200,7 +200,7 @@ public class CPU {
     }
 
     public int getSubtractionFlag() {
-        return GameBoyUtil.getBitFromPosInByte(rf, 6);
+        return GBUtil.getBit(rf, 6);
     }
 
     public void setSubtractionFlag(int n) {
@@ -214,7 +214,7 @@ public class CPU {
     }
 
     public int getHalfCarryFlag() {
-        return GameBoyUtil.getBitFromPosInByte(rf, 5);
+        return GBUtil.getBit(rf, 5);
     }
 
     public void setHalfCarryFlag(int h) {
@@ -228,7 +228,7 @@ public class CPU {
     }
 
     public int getCarryFlag() {
-        return GameBoyUtil.getBitFromPosInByte(rf, 4);
+        return GBUtil.getBit(rf, 4);
     }
 
     public void setCarryFlag(int c) {
@@ -371,7 +371,7 @@ public class CPU {
         Queue<Integer> pendingInterrupts = memory.getPendingInterrupts();
         while (!pendingInterrupts.isEmpty()) {
             int interrupt = pendingInterrupts.poll();
-            if (GameBoyUtil.getBitFromPosInByte(memory.getIERegister(), interrupt) == 1) {
+            if (GBUtil.getBit(memory.getIERegister(), interrupt) == 1) {
                 serviceInterrupt(interrupt);
                 break;
             }
@@ -386,11 +386,11 @@ public class CPU {
     private void serviceInterrupt(int interrupt) {
         setIME(0);
         byte ifRegister = memory.getByte(Constants.IF_ADDRESS);
-        ifRegister = GameBoyUtil.modifyBitOnPosInByte(ifRegister, interrupt, 0);
+        ifRegister = GBUtil.modifyBit(ifRegister, interrupt, 0);
         memory.setByte(ifRegister, Constants.IF_ADDRESS);
 
-        byte pc_lsb = GameBoyUtil.getByteFromShort(true, pc);
-        byte pc_msb = GameBoyUtil.getByteFromShort(false, pc);
+        byte pc_lsb = GBUtil.getByteFromShort(true, pc);
+        byte pc_msb = GBUtil.getByteFromShort(false, pc);
 
         sp = (short) (sp - 1);
         memory.setByte(pc_msb, sp);

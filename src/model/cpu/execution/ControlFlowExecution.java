@@ -1,7 +1,7 @@
 package model.cpu.execution;
 
 import model.cpu.CPU;
-import util.GameBoyUtil;
+import util.GBUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +25,7 @@ public class ControlFlowExecution {
                 byte pc_msb = cpu.getMemory().getByte(sp);
                 sp = (short) (sp + 1);
                 cpu.setStackPointer(sp);
-                short pc = GameBoyUtil.getShortFromBytes(pc_lsb, pc_msb);
+                short pc = GBUtil.getShortFromBytes(pc_lsb, pc_msb);
                 cpu.setProgramCounter((short) (pc - 1)); // account for pc++ at end of cycle
             },
             (CPU cpu) -> {
@@ -37,7 +37,7 @@ public class ControlFlowExecution {
                 byte pc_msb = cpu.getMemory().getByte(sp);
                 sp = (short) (sp + 1);
                 cpu.setStackPointer(sp);
-                short pc = GameBoyUtil.getShortFromBytes(pc_lsb, pc_msb);
+                short pc = GBUtil.getShortFromBytes(pc_lsb, pc_msb);
                 cpu.setProgramCounter((short) (pc - 1)); // account for pc++ at end of cycle
 
                 cpu.setIMEImmediately();
@@ -79,9 +79,9 @@ public class ControlFlowExecution {
      */
     public static void executeJR_CONDITIONAL(byte instruction, CPU cpu) {
         Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
-                GameBoyUtil.get2BitValue(
-                        GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+                GBUtil.get2BitValue(
+                        GBUtil.getBit(instruction, 4),
+                        GBUtil.getBit(instruction, 3)));
 
         if (conditionFunction.apply(cpu) == 1) {
             executeJR_UNCONDITIONAL(instruction, cpu);
@@ -99,7 +99,7 @@ public class ControlFlowExecution {
         short pc = cpu.getProgramCounter();
         byte lsb = cpu.getMemory().getByte((short) (pc + 1));
         byte msb = cpu.getMemory().getByte((short) (pc + 2));
-        short nextPc = GameBoyUtil.getShortFromBytes(lsb, msb);
+        short nextPc = GBUtil.getShortFromBytes(lsb, msb);
         // account for pc incrementing by one at end of every fetch decode execute cycle
         nextPc = (short) (nextPc - 1);
         cpu.setProgramCounter(nextPc);
@@ -113,9 +113,9 @@ public class ControlFlowExecution {
      */
     public static void executeJP_CONDITIONAL(byte instruction, CPU cpu) {
         Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
-                GameBoyUtil.get2BitValue(
-                        GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+                GBUtil.get2BitValue(
+                        GBUtil.getBit(instruction, 4),
+                        GBUtil.getBit(instruction, 3)));
 
         if (conditionFunction.apply(cpu) == 1) {
             executeJP_UNCONDITIONAL(instruction, cpu);
@@ -139,8 +139,8 @@ public class ControlFlowExecution {
         byte u16_msb = cpu.getMemory().getByte(pc);
         pc = (short) (pc + 1);
 
-        byte pc_lsb = GameBoyUtil.getByteFromShort(true, pc);
-        byte pc_msb = GameBoyUtil.getByteFromShort(false, pc);
+        byte pc_lsb = GBUtil.getByteFromShort(true, pc);
+        byte pc_msb = GBUtil.getByteFromShort(false, pc);
 
         short sp = cpu.getStackPointer();
         sp = (short) (sp - 1);
@@ -149,7 +149,7 @@ public class ControlFlowExecution {
         cpu.getMemory().setByte(pc_lsb, sp);
         cpu.setStackPointer(sp);
 
-        short u16 = GameBoyUtil.getShortFromBytes(u16_lsb, u16_msb);
+        short u16 = GBUtil.getShortFromBytes(u16_lsb, u16_msb);
         cpu.setProgramCounter(u16);
         cpu.setProgramCounter((short) (cpu.getProgramCounter() - 1)); // account for pc++ at the end of the cycle
     }
@@ -161,9 +161,9 @@ public class ControlFlowExecution {
      */
     public static void executeCALL_CONDITIONAL(byte instruction, CPU cpu) {
         Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
-                GameBoyUtil.get2BitValue(
-                        GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+                GBUtil.get2BitValue(
+                        GBUtil.getBit(instruction, 4),
+                        GBUtil.getBit(instruction, 3)));
 
         if (conditionFunction.apply(cpu) == 1) {
             executeCALL_UNCONDITIONAL(instruction, cpu);
@@ -180,20 +180,20 @@ public class ControlFlowExecution {
      * bits 5,4,3 in the instruction.
      */
     public static void executeRST(byte instruction, CPU cpu) {
-        int bit5 = GameBoyUtil.getBitFromPosInByte(instruction, 5);
-        int bit4 = GameBoyUtil.getBitFromPosInByte(instruction, 4);
-        int bit3 = GameBoyUtil.getBitFromPosInByte(instruction, 3);
+        int bit5 = GBUtil.getBit(instruction, 5);
+        int bit4 = GBUtil.getBit(instruction, 4);
+        int bit3 = GBUtil.getBit(instruction, 3);
 
         byte exp = (byte) 0b00000000;
-        exp = GameBoyUtil.modifyBitOnPosInByte(exp, 5, bit5);
-        exp = GameBoyUtil.modifyBitOnPosInByte(exp, 4, bit4);
-        exp = GameBoyUtil.modifyBitOnPosInByte(exp, 3, bit3);
+        exp = GBUtil.modifyBit(exp, 5, bit5);
+        exp = GBUtil.modifyBit(exp, 4, bit4);
+        exp = GBUtil.modifyBit(exp, 3, bit3);
 
         short pc = cpu.getProgramCounter();
         pc = (short) (pc + 1);
 
-        byte pc_lsb = GameBoyUtil.getByteFromShort(true, pc);
-        byte pc_msb = GameBoyUtil.getByteFromShort(false, pc);
+        byte pc_lsb = GBUtil.getByteFromShort(true, pc);
+        byte pc_msb = GBUtil.getByteFromShort(false, pc);
 
         short sp = cpu.getStackPointer();
         sp = (short) (sp - 1);
@@ -202,7 +202,7 @@ public class ControlFlowExecution {
         cpu.getMemory().setByte(pc_lsb, sp);
         cpu.setStackPointer(sp);
 
-        short address = GameBoyUtil.getShortFromBytes(exp, (byte) 0);
+        short address = GBUtil.getShortFromBytes(exp, (byte) 0);
         cpu.setProgramCounter(address);
         cpu.setProgramCounter((short) (cpu.getProgramCounter() - 1)); // account for pc++ at the end of the cycle
     }
@@ -212,9 +212,9 @@ public class ControlFlowExecution {
      */
     public static void executeRET_HL_OPS(byte instruction, CPU cpu) {
         Consumer<CPU> ret_hl_op = INSTRUCTION_TO_RET_HL_MAP.get(
-                GameBoyUtil.get2BitValue(
-                        GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 4)));
+                GBUtil.get2BitValue(
+                        GBUtil.getBit(instruction, 5),
+                        GBUtil.getBit(instruction, 4)));
         ret_hl_op.accept(cpu);
     }
 
@@ -223,9 +223,9 @@ public class ControlFlowExecution {
      */
     public static void executeRET_CONDITIONAL(byte instruction, CPU cpu) {
         Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
-                GameBoyUtil.get2BitValue(
-                        GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                        GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+                GBUtil.get2BitValue(
+                        GBUtil.getBit(instruction, 4),
+                        GBUtil.getBit(instruction, 3)));
 
         if (conditionFunction.apply(cpu) == 1) {
             INSTRUCTION_TO_RET_HL_MAP.get(0).accept(cpu);

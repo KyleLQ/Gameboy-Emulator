@@ -1,15 +1,15 @@
 package model.cpu.execution;
 
 import model.cpu.CPU;
-import util.GameBoyUtil;
+import util.GBUtil;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import static util.GameBoyUtil.INSTRUCTION_TO_GET_R16_SP_MAP;
-import static util.GameBoyUtil.INSTRUCTION_TO_SET_R16_SP_MAP;
+import static util.GBUtil.INSTRUCTION_TO_GET_R16_SP_MAP;
+import static util.GBUtil.INSTRUCTION_TO_SET_R16_SP_MAP;
 
 /**
  * class containing methods that execute ALU operations
@@ -86,17 +86,17 @@ public class ALUExecution {
      * corresponds to ALU A,r8 instruction.
      */
     public static void executeALU_A_r8(byte instruction, CPU cpu) {
-        Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 2),
-                GameBoyUtil.getBitFromPosInByte(instruction, 1),
-                GameBoyUtil.getBitFromPosInByte(instruction, 0)));
+        Function<CPU, Byte> getR8 = GBUtil.INSTRUCTION_TO_GET_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 2),
+                GBUtil.getBit(instruction, 1),
+                GBUtil.getBit(instruction, 0)));
 
         byte r8 = getR8.apply(cpu);
 
-        BiConsumer<Byte, CPU> ALUFunction = INSTRUCTION_TO_ALU_A_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+        BiConsumer<Byte, CPU> ALUFunction = INSTRUCTION_TO_ALU_A_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4),
+                GBUtil.getBit(instruction, 3)));
 
         ALUFunction.accept(r8, cpu);
     }
@@ -111,10 +111,10 @@ public class ALUExecution {
         byte u8 = cpu.getMemory().getByte(pc);
         cpu.setProgramCounter(pc);
 
-        BiConsumer<Byte, CPU> ALUFunction = INSTRUCTION_TO_ALU_A_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+        BiConsumer<Byte, CPU> ALUFunction = INSTRUCTION_TO_ALU_A_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4),
+                GBUtil.getBit(instruction, 3)));
 
         ALUFunction.accept(u8, cpu);
     }
@@ -123,9 +123,9 @@ public class ALUExecution {
      * corresponds to the ADD HL, r16 instruction
      */
     public static void executeADD_HL_r16(byte instruction, CPU cpu) {
-       Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
-               GameBoyUtil.getBitFromPosInByte(instruction, 5),
-               GameBoyUtil.getBitFromPosInByte(instruction, 4)
+       Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GBUtil.get2BitValue(
+               GBUtil.getBit(instruction, 5),
+               GBUtil.getBit(instruction, 4)
        ));
 
        short r16 = getR16.apply(cpu);
@@ -152,7 +152,7 @@ public class ALUExecution {
         cpu.setZeroFlag(0);
         cpu.setSubtractionFlag(0);
 
-        byte sp_lsb = GameBoyUtil.getByteFromShort(true, sp);
+        byte sp_lsb = GBUtil.getByteFromShort(true, sp);
         updateCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
         updateHalfCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
     }
@@ -174,7 +174,7 @@ public class ALUExecution {
         cpu.setZeroFlag(0);
         cpu.setSubtractionFlag(0);
 
-        byte sp_lsb = GameBoyUtil.getByteFromShort(true, sp);
+        byte sp_lsb = GBUtil.getByteFromShort(true, sp);
         updateCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
         updateHalfCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
     }
@@ -184,21 +184,21 @@ public class ALUExecution {
      */
     public static void executeINC_r8(byte instruction, CPU cpu) {
 
-        Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+        Function<CPU, Byte> getR8 = GBUtil.INSTRUCTION_TO_GET_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4),
+                GBUtil.getBit(instruction, 3)));
 
         byte r8 = getR8.apply(cpu);
-        int result = GameBoyUtil.zeroExtendByte(r8) + 1;
+        int result = GBUtil.zeroExtend(r8) + 1;
         cpu.setZeroFlag(( (byte) result == 0) ? 1 : 0);
         cpu.setSubtractionFlag(0);
         updateHalfCarryFlagAdditionR8(r8, (byte) 1, (byte) 0, cpu);
 
-        BiConsumer<Byte, CPU> setR8 = GameBoyUtil.INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
-           GameBoyUtil.getBitFromPosInByte(instruction, 5),
-           GameBoyUtil.getBitFromPosInByte(instruction, 4),
-           GameBoyUtil.getBitFromPosInByte(instruction, 3)
+        BiConsumer<Byte, CPU> setR8 = GBUtil.INSTRUCTION_TO_SET_R8_MAP.get(GBUtil.get3BitValue(
+           GBUtil.getBit(instruction, 5),
+           GBUtil.getBit(instruction, 4),
+           GBUtil.getBit(instruction, 3)
         ));
 
         setR8.accept((byte) result, cpu);
@@ -209,21 +209,21 @@ public class ALUExecution {
      * corresponds to DEC r8 instruction
      */
     public static void executeDEC_r8(byte instruction, CPU cpu) {
-        Function<CPU, Byte> getR8 = GameBoyUtil.INSTRUCTION_TO_GET_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                GameBoyUtil.getBitFromPosInByte(instruction, 3)));
+        Function<CPU, Byte> getR8 = GBUtil.INSTRUCTION_TO_GET_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4),
+                GBUtil.getBit(instruction, 3)));
 
         byte r8 = getR8.apply(cpu);
-        int result = GameBoyUtil.zeroExtendByte(r8) - 1;
+        int result = GBUtil.zeroExtend(r8) - 1;
         cpu.setZeroFlag(((byte) result == 0) ? 1 : 0);
         cpu.setSubtractionFlag(1);
         updateHalfCarryFlagSubtractionR8(r8, (byte) 1, (byte) 0, cpu);
 
-        BiConsumer<Byte, CPU> setR8 = GameBoyUtil.INSTRUCTION_TO_SET_R8_MAP.get(GameBoyUtil.get3BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4),
-                GameBoyUtil.getBitFromPosInByte(instruction, 3)
+        BiConsumer<Byte, CPU> setR8 = GBUtil.INSTRUCTION_TO_SET_R8_MAP.get(GBUtil.get3BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4),
+                GBUtil.getBit(instruction, 3)
         ));
 
         setR8.accept((byte) result, cpu);
@@ -233,17 +233,17 @@ public class ALUExecution {
      * corresponds to INC r16 instruction
      */
     public static void executeINC_r16(byte instruction, CPU cpu) {
-        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GBUtil.get2BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4)
         ));
 
         short r16 = getR16.apply(cpu);
-        int result = GameBoyUtil.zeroExtendShort(r16) + 1;
+        int result = GBUtil.zeroExtend(r16) + 1;
 
-        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_SP_MAP.get(GBUtil.get2BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4)
         ));
         setR16.accept((short) result, cpu);
     }
@@ -252,17 +252,17 @@ public class ALUExecution {
      * corresponds to DEC r16 instruction
      */
     public static void executeDEC_r16(byte instruction, CPU cpu) {
-        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GBUtil.get2BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4)
         ));
 
         short r16 = getR16.apply(cpu);
-        int result = GameBoyUtil.zeroExtendShort(r16) - 1;
+        int result = GBUtil.zeroExtend(r16) - 1;
 
-        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_SP_MAP.get(GameBoyUtil.get2BitValue(
-                GameBoyUtil.getBitFromPosInByte(instruction, 5),
-                GameBoyUtil.getBitFromPosInByte(instruction, 4)
+        BiConsumer<Short, CPU> setR16 = INSTRUCTION_TO_SET_R16_SP_MAP.get(GBUtil.get2BitValue(
+                GBUtil.getBit(instruction, 5),
+                GBUtil.getBit(instruction, 4)
         ));
         setR16.accept((short) result, cpu);
     }
@@ -271,19 +271,19 @@ public class ALUExecution {
      * updates carry flag based on the result of operand1 + operand2 + operand3
      */
     private static void updateCarryFlagAdditionR8(byte operand1, byte operand2, byte operand3, CPU cpu) {
-        int result = GameBoyUtil.zeroExtendByte(operand1) +
-                GameBoyUtil.zeroExtendByte(operand2) +
-                GameBoyUtil.zeroExtendByte(operand3);
-        cpu.setCarryFlag((result > GameBoyUtil.UNSIGNED_BYTE_MAX) ? 1 : 0);
+        int result = GBUtil.zeroExtend(operand1) +
+                GBUtil.zeroExtend(operand2) +
+                GBUtil.zeroExtend(operand3);
+        cpu.setCarryFlag((result > GBUtil.UNSIGNED_BYTE_MAX) ? 1 : 0);
     }
 
     /**
      * updates carry flag based on the result of operand1 - operand2 - operand3
      */
     private static void updateCarryFlagSubtractionR8(byte operand1, byte operand2, byte operand3, CPU cpu) {
-        int result = GameBoyUtil.zeroExtendByte(operand1) -
-                GameBoyUtil.zeroExtendByte(operand2) -
-                GameBoyUtil.zeroExtendByte(operand3);
+        int result = GBUtil.zeroExtend(operand1) -
+                GBUtil.zeroExtend(operand2) -
+                GBUtil.zeroExtend(operand3);
         cpu.setCarryFlag((result < 0) ? 1 : 0);
     }
 
@@ -291,19 +291,19 @@ public class ALUExecution {
      * updates half carry flag based on the result of operand1 + operand2 + operand3
      */
     private static void updateHalfCarryFlagAdditionR8(byte operand1, byte operand2, byte operand3, CPU cpu) {
-        int nibbleAdditionResult = GameBoyUtil.getNibble(true, operand1) +
-                GameBoyUtil.getNibble(true, operand2) +
-                GameBoyUtil.getNibble(true, operand3);
-        cpu.setHalfCarryFlag((nibbleAdditionResult > GameBoyUtil.UNSIGNED_NIBBLE_MAX) ? 1 : 0);
+        int nibbleAdditionResult = GBUtil.getNibble(true, operand1) +
+                GBUtil.getNibble(true, operand2) +
+                GBUtil.getNibble(true, operand3);
+        cpu.setHalfCarryFlag((nibbleAdditionResult > GBUtil.UNSIGNED_NIBBLE_MAX) ? 1 : 0);
     }
 
     /**
      * updates half carry flag based on result of operand1 - operand2 - operand3
      */
     private static void updateHalfCarryFlagSubtractionR8(byte operand1, byte operand2, byte operand3, CPU cpu) {
-        int nibbleSubtractionResult = GameBoyUtil.getNibble(true, operand1) -
-                GameBoyUtil.getNibble(true, operand2) -
-                GameBoyUtil.getNibble(true, operand3);
+        int nibbleSubtractionResult = GBUtil.getNibble(true, operand1) -
+                GBUtil.getNibble(true, operand2) -
+                GBUtil.getNibble(true, operand3);
         cpu.setHalfCarryFlag((nibbleSubtractionResult < 0) ? 1 : 0);
     }
 
@@ -311,8 +311,8 @@ public class ALUExecution {
      * updates carry flag based on the result of operand1 + operand2
      */
     private static void updateCarryFlagAdditionR16(short operand1, short operand2, CPU cpu) {
-        int result = GameBoyUtil.zeroExtendShort(operand1) + GameBoyUtil.zeroExtendShort(operand2);
-        cpu.setCarryFlag((result > GameBoyUtil.UNSIGNED_SHORT_MAX) ? 1 : 0);
+        int result = GBUtil.zeroExtend(operand1) + GBUtil.zeroExtend(operand2);
+        cpu.setCarryFlag((result > GBUtil.UNSIGNED_SHORT_MAX) ? 1 : 0);
     }
 
     /**
@@ -320,7 +320,7 @@ public class ALUExecution {
      */
     private static void updateHalfCarryFlagAdditionR16(short operand1, short operand2, CPU cpu) {
         int mask = 0x0FFF;
-        int result = (GameBoyUtil.zeroExtendShort(operand1) & mask) + (GameBoyUtil.zeroExtendShort(operand2) & mask);
-        cpu.setHalfCarryFlag((result > GameBoyUtil.UNSIGNED_12_BIT_MAX) ? 1 : 0);
+        int result = (GBUtil.zeroExtend(operand1) & mask) + (GBUtil.zeroExtend(operand2) & mask);
+        cpu.setHalfCarryFlag((result > GBUtil.UNSIGNED_12_BIT_MAX) ? 1 : 0);
     }
 }
