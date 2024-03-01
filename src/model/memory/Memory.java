@@ -247,6 +247,10 @@ public class Memory {
     }
 
     private void setMBC1Registers(byte value, short address) {
+        if (mbc != MBC.MBC_1) {
+            return;
+        }
+
         if (GameBoyUtil.zeroExtendShort(Constants.RAM_ENABLE_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
                 GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.RAM_ENABLE_END_ADDRESS)) {
             ramEnabled = GameBoyUtil.getNibble(true, value) == 0xA;
