@@ -163,6 +163,10 @@ public class Memory {
             // todo for testing only
             if (address == (short) 0xFF44) {
                 retVal =  (byte) 0x90;
+            } else if (address == (short) 0xFF4D) { // todo prevent blargg test from trying to speed switch
+                // todo according to https://www.reddit.com/r/EmuDev/comments/u1d1p6/gameboy_blargg_test_03_infinite_loop/
+                // maybe I should make unused/unmapped IO registers read out 0xFF and be read only!
+                retVal = (byte) 0xFF;
             } else {
                 retVal = ioRegisters[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS)];
             }
@@ -619,6 +623,10 @@ public class Memory {
             // todo for testing only
             if (address == (short) 0xFF44) {
                 retVal =  (byte) 0x90;
+            } else if (address == (short) 0xFF4D) { // todo prevent blargg test from trying to speed switch
+                // todo according to https://www.reddit.com/r/EmuDev/comments/u1d1p6/gameboy_blargg_test_03_infinite_loop/
+                // maybe I should make unused/unmapped IO registers read out 0xFF and be read only!
+                retVal = (byte) 0xFF;
             } else {
                 retVal = ioRegisters[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS)];
             }
@@ -679,7 +687,10 @@ public class Memory {
         } else if (GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
                 GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_END_ADDRESS)) {
 
-            setByteIORegister(value, address);
+            // todo setByteNoTick method is only used by doMCycle().
+            // Since setByteIORegister has special behavior for stuff like DIV and TIMA, which we don't want,
+            // we can't use that and just use this instead.
+            ioRegisters[GameBoyUtil.zeroExtendShort(address) - GameBoyUtil.zeroExtendShort(Constants.IO_REGISTERS_START_ADDRESS)] = value;
 
         } else if (GameBoyUtil.zeroExtendShort(Constants.HRAM_START_ADDRESS) <= GameBoyUtil.zeroExtendShort(address) &&
                 GameBoyUtil.zeroExtendShort(address) <= GameBoyUtil.zeroExtendShort(Constants.HRAM_END_ADDRESS)) {
