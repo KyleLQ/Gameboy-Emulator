@@ -711,4 +711,24 @@ public class Memory {
         // todo for testing only
         printSerialOutput();
     }
+
+    // todo needed for unit tests to set interrupt handler methods for now.
+    // maybe in the future just have unit tests directly read in a test ROM?
+    // This method allows you to directly write to the ROM address space, no side effects otherwise.
+    public void setByteRom(byte value, short address) {
+        if (GBUtil.zeroExtend(Constants.FIXED_ROM_START) <= GBUtil.zeroExtend(address) &&
+                GBUtil.zeroExtend(address) <= GBUtil.zeroExtend(Constants.FIXED_ROM_END)) {
+
+            fixedRom[GBUtil.zeroExtend(address)] = value;
+
+        } else if (GBUtil.zeroExtend(Constants.SWITCHABLE_ROM_START) <= GBUtil.zeroExtend(address) &&
+                GBUtil.zeroExtend(address) <= GBUtil.zeroExtend(Constants.SWITCHABLE_ROM_END)) {
+
+            switchableRom[GBUtil.zeroExtend(address) - GBUtil.zeroExtend(Constants.SWITCHABLE_ROM_START) +
+                    (currRomBank - 1) * Constants.kb16] = value;
+
+        } else {
+            throw new MemoryException("Address: " + address + " is not in the ROM address space");
+        }
+    }
 }

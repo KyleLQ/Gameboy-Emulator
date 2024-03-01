@@ -172,11 +172,11 @@ public class MiscExecutionTest {
         cpu.getMemory().setByte(nopInstruction, (short) (startAddress + 1));
         cpu.getMemory().setByte(haltInstruction, (short) (startAddress + 2));
 
-        cpu.getMemory().setByte(inc_bInstruction, Constants.VBLANK_HANDLER_ADDRESS);
-        cpu.getMemory().setByte(retiInstruction, (short) (Constants.VBLANK_HANDLER_ADDRESS + 1));
+        cpu.getMemory().setByteRom(inc_bInstruction, Constants.VBLANK_HANDLER_ADDRESS);
+        cpu.getMemory().setByteRom(retiInstruction, (short) (Constants.VBLANK_HANDLER_ADDRESS + 1));
 
-        cpu.getMemory().setByte(add_b_to_aInstruction, Constants.JOYPAD_HANDLER_ADDRESS);
-        cpu.getMemory().setByte(retiInstruction, (short) (Constants.JOYPAD_HANDLER_ADDRESS + 1));
+        cpu.getMemory().setByteRom(add_b_to_aInstruction, Constants.JOYPAD_HANDLER_ADDRESS);
+        cpu.getMemory().setByteRom(retiInstruction, (short) (Constants.JOYPAD_HANDLER_ADDRESS + 1));
 
         cpu.setProgramCounter(startAddress);
         cpu.setStackPointer((short) 0xFFFE);
