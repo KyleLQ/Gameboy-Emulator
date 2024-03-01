@@ -26,6 +26,7 @@ public class ControlFlowExecution {
                 sp = (short) (sp + 1);
                 cpu.setStackPointer(sp);
                 short pc = GBUtil.getShortFromBytes(pc_lsb, pc_msb);
+                cpu.getMemory().doMCycle(); // this instruction takes an extra M-cycle
                 cpu.setProgramCounter((short) (pc - 1)); // account for pc++ at end of cycle
             },
             (CPU cpu) -> {
@@ -38,6 +39,7 @@ public class ControlFlowExecution {
                 sp = (short) (sp + 1);
                 cpu.setStackPointer(sp);
                 short pc = GBUtil.getShortFromBytes(pc_lsb, pc_msb);
+                cpu.getMemory().doMCycle(); // this instruction takes an extra M-cycle
                 cpu.setProgramCounter((short) (pc - 1)); // account for pc++ at end of cycle
 
                 cpu.setIMEImmediately();
@@ -49,6 +51,8 @@ public class ControlFlowExecution {
             (CPU cpu) -> {
                 short hl = cpu.getRegisterHL();
                 cpu.setStackPointer(hl);
+                // this takes an extra M-cycle
+                cpu.getMemory().doMCycle();
             }
     );
 
@@ -56,6 +60,7 @@ public class ControlFlowExecution {
      * corresponds to unconditional relative jump instruction.
      * the signed 8 bit offset is calculated based on the address
      * immediately following the JR instruction.
+     * This takes 3 M-cycles, so add an extra M-cycle call.
      */
     public static void executeJR_UNCONDITIONAL(byte instruction, CPU cpu) {
         short pc = cpu.getProgramCounter();
@@ -68,14 +73,15 @@ public class ControlFlowExecution {
         // account for pc will increment by one at the end of every fetch decode execute cycle
         pc = (short) (pc - 1);
         cpu.setProgramCounter(pc);
+        cpu.getMemory().doMCycle();
     }
 
     /**
      * corresponds to conditional relative jump instruction.
      * the signed 8 bit offset is calculated based on the address
      * immediately following the JR instruction.
-     *
      * Conditions are based on the C and Z flags.
+     * The 8 bit immediate is still read no matter what.
      */
     public static void executeJR_CONDITIONAL(byte instruction, CPU cpu) {
         Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
@@ -86,14 +92,17 @@ public class ControlFlowExecution {
         if (conditionFunction.apply(cpu) == 1) {
             executeJR_UNCONDITIONAL(instruction, cpu);
         } else {
-            // offset is one extra byte, while pc only increments by one at end of every fetch decode execute cycle
-            cpu.setProgramCounter((short) (cpu.getProgramCounter() + 1));
+            short pc = cpu.getProgramCounter();
+            pc = (short) (pc + 1);
+            cpu.getMemory().getByte(pc);
+            cpu.setProgramCounter(pc);
         }
     }
 
     /**
      * corresponds to unconditional absolute jump instruction. The address to set PC
      * to is specified by the 2 bytes after instruction, in little Endian.
+     * This takes 4 M-cycles, so add an extra M-cycle call.
      */
     public static void executeJP_UNCONDITIONAL(byte instruction, CPU cpu) {
         short pc = cpu.getProgramCounter();
@@ -103,13 +112,14 @@ public class ControlFlowExecution {
         // account for pc incrementing by one at end of every fetch decode execute cycle
         nextPc = (short) (nextPc - 1);
         cpu.setProgramCounter(nextPc);
+        cpu.getMemory().doMCycle();
     }
 
     /**
      * corresponds to conditional absolute jump instruction. The address to set PC
      * to is specified by the 2 bytes after instruction, in little Endian.
-     *
-     * Conditions are based on the C and Z flags
+     * Conditions are based on the C and Z flags.
+     * The 16 bit immediate is read no matter what.
      */
     public static void executeJP_CONDITIONAL(byte instruction, CPU cpu) {
         Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
@@ -120,9 +130,12 @@ public class ControlFlowExecution {
         if (conditionFunction.apply(cpu) == 1) {
             executeJP_UNCONDITIONAL(instruction, cpu);
         } else {
-            // the address after the instruction is two extra bytes,
-            // while pc only increments by one at end of every fetch decode execute cycle
-            cpu.setProgramCounter((short) (cpu.getProgramCounter() + 2));
+            short pc = cpu.getProgramCounter();
+            pc = (short) (pc + 1);
+            cpu.getMemory().getByte(pc);
+            pc = (short) (pc + 1);
+            cpu.getMemory().getByte(pc);
+            cpu.setProgramCounter(pc);
         }
     }
 
@@ -130,6 +143,7 @@ public class ControlFlowExecution {
      * Executes the unconditional CALL instruction.
      * Jumps to the 16 bit immediate and pushes the address of the instruction after the
      * CALL on the stack.
+     * This takes 6 M-cycles, so need to add M-Cycle calls.
      */
     public static void executeCALL_UNCONDITIONAL(byte instruction, CPU cpu) {
         short pc = cpu.getProgramCounter();
@@ -144,6 +158,7 @@ public class ControlFlowExecution {
 
         short sp = cpu.getStackPointer();
         sp = (short) (sp - 1);
+        cpu.getMemory().doMCycle();
         cpu.getMemory().setByte(pc_msb, sp);
         sp = (short) (sp - 1);
         cpu.getMemory().setByte(pc_lsb, sp);
@@ -168,9 +183,12 @@ public class ControlFlowExecution {
         if (conditionFunction.apply(cpu) == 1) {
             executeCALL_UNCONDITIONAL(instruction, cpu);
         } else {
-            // the address after the instruction is two extra bytes,
-            // while pc only increments by one at end of every fetch decode execute cycle
-            cpu.setProgramCounter((short) (cpu.getProgramCounter() + 2));
+            short pc = cpu.getProgramCounter();
+            pc = (short) (pc + 1);
+            cpu.getMemory().getByte(pc);
+            pc = (short) (pc + 1);
+            cpu.getMemory().getByte(pc);
+            cpu.setProgramCounter(pc);
         }
     }
 
@@ -178,6 +196,7 @@ public class ControlFlowExecution {
      * Executes the instruction RST.
      * Equivalent to CALL 00EXP000, where EXP is represented by
      * bits 5,4,3 in the instruction.
+     * This takes 4 M-cycles, so add an extra M-cycle call.
      */
     public static void executeRST(byte instruction, CPU cpu) {
         int bit5 = GBUtil.getBit(instruction, 5);
@@ -197,6 +216,7 @@ public class ControlFlowExecution {
 
         short sp = cpu.getStackPointer();
         sp = (short) (sp - 1);
+        cpu.getMemory().doMCycle();
         cpu.getMemory().setByte(pc_msb, sp);
         sp = (short) (sp - 1);
         cpu.getMemory().setByte(pc_lsb, sp);
@@ -220,6 +240,9 @@ public class ControlFlowExecution {
 
     /**
      * Executes the instruction RET conditional
+     * This instruction takes 5 M-cycles in True case
+     * and 2 M-cycles in false case, so add an extra
+     * M-cycle call.
      */
     public static void executeRET_CONDITIONAL(byte instruction, CPU cpu) {
         Function<CPU, Integer> conditionFunction = INSTRUCTION_TO_CONDITION_MAP.get(
@@ -227,6 +250,7 @@ public class ControlFlowExecution {
                         GBUtil.getBit(instruction, 4),
                         GBUtil.getBit(instruction, 3)));
 
+        cpu.getMemory().doMCycle();
         if (conditionFunction.apply(cpu) == 1) {
             INSTRUCTION_TO_RET_HL_MAP.get(0).accept(cpu);
         }

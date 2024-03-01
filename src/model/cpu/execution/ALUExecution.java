@@ -120,7 +120,8 @@ public class ALUExecution {
     }
 
     /**
-     * corresponds to the ADD HL, r16 instruction
+     * corresponds to the ADD HL, r16 instruction.
+     * Takes 2 M-cycles, so add an extra M-cycle call.
      */
     public static void executeADD_HL_r16(byte instruction, CPU cpu) {
        Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GBUtil.get2BitValue(
@@ -134,12 +135,15 @@ public class ALUExecution {
         updateCarryFlagAdditionR16(cpu.getRegisterHL(), r16, cpu);
         updateHalfCarryFlagAdditionR16(cpu.getRegisterHL(), r16, cpu);
         cpu.setRegisterHL((short) (cpu.getRegisterHL() + r16));
+
+        cpu.getMemory().doMCycle();
     }
 
     /**
      * Executes the instruction ADD SP, i8.
      * Adds the signed byte i8 to SP. Updates C and H only if there is a carry
      * from bit 7 and 3 respectively. (applies to negative i8 as well, using twos complement addition)
+     * This instruction takes 4 M-cycles, so add more M-cycle calls.
      */
     public static void executeADD_SP_i8(byte instruction, CPU cpu) {
         short pc = cpu.getProgramCounter();
@@ -149,12 +153,17 @@ public class ALUExecution {
 
         short sp = cpu.getStackPointer();
         cpu.setStackPointer((short) (sp + i8));
+
+        cpu.getMemory().doMCycle();
+
         cpu.setZeroFlag(0);
         cpu.setSubtractionFlag(0);
 
         byte sp_lsb = GBUtil.getByteFromShort(true, sp);
         updateCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
         updateHalfCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
+
+        cpu.getMemory().doMCycle();
     }
 
     /**
@@ -162,6 +171,7 @@ public class ALUExecution {
      * The signed byte i8 is added to SP. The result is loaded into HL.
      * Updates C and H only if there is a carry from bit 7 and 3 respectively.
      * (applies to negative i8 as well, using twos complement addition)
+     * This takes 3 M-Cycles, so add another M-cycle call.
      */
     public static void executeLD_HL_SP_plus_i8(byte instruction, CPU cpu) {
         short pc = cpu.getProgramCounter();
@@ -177,6 +187,8 @@ public class ALUExecution {
         byte sp_lsb = GBUtil.getByteFromShort(true, sp);
         updateCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
         updateHalfCarryFlagAdditionR8(sp_lsb, i8, (byte) 0, cpu);
+
+        cpu.getMemory().doMCycle();
     }
 
     /**
@@ -230,7 +242,8 @@ public class ALUExecution {
     }
 
     /**
-     * corresponds to INC r16 instruction
+     * corresponds to INC r16 instruction.
+     * This takes 2 M-cycles, so add an extra M-cycle call.
      */
     public static void executeINC_r16(byte instruction, CPU cpu) {
         Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GBUtil.get2BitValue(
@@ -246,10 +259,12 @@ public class ALUExecution {
                 GBUtil.getBit(instruction, 4)
         ));
         setR16.accept((short) result, cpu);
+        cpu.getMemory().doMCycle();
     }
 
     /**
-     * corresponds to DEC r16 instruction
+     * corresponds to DEC r16 instruction.
+     * This takes 2 M-cycles, so add an extra M-cycle call.
      */
     public static void executeDEC_r16(byte instruction, CPU cpu) {
         Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_SP_MAP.get(GBUtil.get2BitValue(
@@ -265,6 +280,7 @@ public class ALUExecution {
                 GBUtil.getBit(instruction, 4)
         ));
         setR16.accept((short) result, cpu);
+        cpu.getMemory().doMCycle();
     }
 
     /**

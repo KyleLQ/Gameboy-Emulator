@@ -247,6 +247,7 @@ public class LoadExecution {
      * Executes the instruction PUSH r16.
      * The stack pointer should point to the byte at the top of the stack.
      * (NOT the first "empty" byte above the stack)
+     * This takes 4 M-cycles, so add an extra M-cycle.
      */
     public static void executePUSH_r16(byte instruction, CPU cpu) {
         Function<CPU, Short> getR16 = INSTRUCTION_TO_GET_R16_AF_MAP.get(
@@ -260,6 +261,7 @@ public class LoadExecution {
 
         short sp = cpu.getStackPointer();
         sp = (short) (sp - 1);
+        cpu.getMemory().doMCycle();
         cpu.getMemory().setByte(r16_msb, sp);
         sp = (short) (sp - 1);
         cpu.getMemory().setByte(r16_lsb, sp);
