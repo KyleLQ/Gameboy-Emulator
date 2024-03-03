@@ -3,7 +3,7 @@ package model.cpu;
 import exception.CPUException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import testutil.TestUtil;
+import util.TestUtil;
 import util.Constants;
 
 import static org.junit.jupiter.api.Assertions.*;

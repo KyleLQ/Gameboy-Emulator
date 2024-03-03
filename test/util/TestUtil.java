@@ -1,6 +1,4 @@
-package testutil;
-
-import util.GBUtil;
+package util;
 
 public class TestUtil {
 

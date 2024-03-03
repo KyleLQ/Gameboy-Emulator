@@ -3,7 +3,7 @@ package model.cpu.execution;
 import model.cpu.CPU;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import testutil.TestUtil;
+import util.TestUtil;
 import util.GBUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

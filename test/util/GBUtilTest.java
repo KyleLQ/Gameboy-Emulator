@@ -2,7 +2,6 @@ package util;
 
 import exception.CPUException;
 import org.junit.jupiter.api.Test;
-import testutil.TestUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
