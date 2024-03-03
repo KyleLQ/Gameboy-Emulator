@@ -357,7 +357,7 @@ public class Memory {
      */
     public Queue<Integer> getPendingInterrupts() {
         Queue<Integer> pendingInterrupts = new PriorityQueue<>();
-        byte andResult = (byte) (getByte(Constants.IE_ADDRESS) & getByte(Constants.IF_ADDRESS));
+        byte andResult = (byte) (getByteNoTick(Constants.IE_ADDRESS) & getByteNoTick(Constants.IF_ADDRESS));
         for (int i = Constants.VBLANK; i <= Constants.JOYPAD; i++) {
             if (GBUtil.getBit(andResult, i) == 1) {
                 pendingInterrupts.add(i);
