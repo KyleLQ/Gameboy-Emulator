@@ -575,6 +575,23 @@ public class Memory {
         }
     }
 
+    // todo for testing blargg mem_timing 2, OAM_bug, dmg_sound, and cgb_sound,
+    // since these test roms write results to memory instead of via the serial port. (see respective readme)
+    // Call this where you call printSerialOutput(), or call it in the loop in main.java
+    // every 4096 cycles or something. This will be unnecessary once I get display working.
+    public void printMemoryOutput() {
+        if ((getByteNoTick((short) 0xA001) == (byte) 0xDE) &&
+                (getByteNoTick((short) 0xA002) == (byte) 0xB0) &&
+                (getByteNoTick((short) 0xA003) == (byte) 0x61)) {
+            byte character = getByteNoTick((short) 0xA004);
+            byte resultCode = getByteNoTick((short) 0xA000);
+            char c = (char) GBUtil.zeroExtend(character);
+            int resultCodeInt = GBUtil.zeroExtend(resultCode);
+            System.out.println("ResultCode: " + resultCodeInt);
+            System.out.println(c);
+        }
+    }
+
     // todo for testing purposes, probably remove later (some of my actual methods use this, so need to come up with better way to do this)
     public byte getByteNoTick(short address) {
         byte retVal;
